@@ -47,6 +47,11 @@ func (h HttpHandlers) POSTHandler(rw http.ResponseWriter, rq *http.Request) {
 
 	fmt.Printf("url: %s", url)
 
+	if url == "" {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	shortLink := ""
 
 	if result, key := h.storage.ContainsValue(url); result {
