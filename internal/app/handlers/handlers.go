@@ -24,9 +24,9 @@ func NewHTTPHandlers() HTTPHandlers {
 func (h HTTPHandlers) GETHandler(rw http.ResponseWriter, rq *http.Request) {
 	id := strings.TrimPrefix(rq.URL.Path, "/")
 
-	url := h.storage.Get(id)
+	url, exist := h.storage.Get(id)
 
-	if url == "" {
+	if !exist {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}

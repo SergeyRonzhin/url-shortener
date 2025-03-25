@@ -8,8 +8,9 @@ func NewStorage() Storage {
 	return Storage{make(map[string]string)}
 }
 
-func (s Storage) Get(key string) string {
-	return s.links[key]
+func (s Storage) Get(key string) (string, bool) {
+	value, exist := s.links[key]
+	return value, exist
 }
 
 func (s Storage) Add(key string, value string) {
