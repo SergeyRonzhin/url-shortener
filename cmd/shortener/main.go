@@ -29,21 +29,19 @@ func runService() {
 
 func mainHandler(rw http.ResponseWriter, rq *http.Request) {
 
-	header := rq.Header.Get("content-type")
+	contentType := rq.Header.Get("content-type")
 
-	if header != "text/plain" {
+	if !strings.Contains(contentType, "text/plain") {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	id := strings.TrimPrefix(rq.URL.Path, "/")
-
-	if id == "" && rq.Method == http.MethodPost {
+	if rq.Method == http.MethodPost {
 		httpHandlers.POSTHandler(rw, rq)
 		return
 	}
 
-	if id != "" && rq.Method == http.MethodGet {
+	if rq.Method == http.MethodGet {
 		httpHandlers.GETHandler(rw, rq)
 		return
 	}
