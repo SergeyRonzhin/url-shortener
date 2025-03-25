@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/handlers"
 )
@@ -29,22 +28,12 @@ func runService() {
 
 func mainHandler(rw http.ResponseWriter, rq *http.Request) {
 
-	contentType := rq.Header.Get("content-type")
-
-	if !strings.Contains(contentType, "text/plain") {
-		rw.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if rq.Method == http.MethodPost {
+	switch rq.Method {
+	case http.MethodPost:
 		httpHandlers.POSTHandler(rw, rq)
-		return
-	}
-
-	if rq.Method == http.MethodGet {
+	case http.MethodGet:
 		httpHandlers.GETHandler(rw, rq)
-		return
+	default:
+		rw.WriteHeader(http.StatusBadRequest)
 	}
-
-	rw.WriteHeader(http.StatusBadRequest)
 }

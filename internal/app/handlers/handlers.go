@@ -36,6 +36,14 @@ func (h HTTPHandlers) GETHandler(rw http.ResponseWriter, rq *http.Request) {
 }
 
 func (h HTTPHandlers) POSTHandler(rw http.ResponseWriter, rq *http.Request) {
+
+	contentType := rq.Header.Get("content-type")
+
+	if !strings.Contains(contentType, "text/plain") {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	body, err := io.ReadAll(rq.Body)
 
 	if err != nil {
