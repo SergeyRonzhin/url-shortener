@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	httpHandlers = handlers.NewHttpHandlers()
+	httpHandlers = handlers.NewHTTPHandlers()
 )
 
 func main() {

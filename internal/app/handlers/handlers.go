@@ -13,15 +13,15 @@ import (
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-type HttpHandlers struct {
+type HTTPHandlers struct {
 	storage storage.Storage
 }
 
-func NewHttpHandlers() HttpHandlers {
-	return HttpHandlers{storage.NewStorage()}
+func NewHTTPHandlers() HTTPHandlers {
+	return HTTPHandlers{storage.NewStorage()}
 }
 
-func (h HttpHandlers) GETHandler(rw http.ResponseWriter, rq *http.Request) {
+func (h HTTPHandlers) GETHandler(rw http.ResponseWriter, rq *http.Request) {
 	id := strings.TrimPrefix(rq.URL.Path, "/")
 
 	url := h.storage.Get(id)
@@ -35,7 +35,7 @@ func (h HttpHandlers) GETHandler(rw http.ResponseWriter, rq *http.Request) {
 	rw.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func (h HttpHandlers) POSTHandler(rw http.ResponseWriter, rq *http.Request) {
+func (h HTTPHandlers) POSTHandler(rw http.ResponseWriter, rq *http.Request) {
 	body, err := io.ReadAll(rq.Body)
 
 	if err != nil {
