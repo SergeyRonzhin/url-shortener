@@ -4,6 +4,12 @@ type Storage struct {
 	links map[string]string
 }
 
+type Repository interface {
+	Get(key string) (string, bool)
+	Add(key string, value string)
+	ContainsValue(value string) (bool, string)
+}
+
 func NewStorage() Storage {
 	return Storage{make(map[string]string)}
 }
