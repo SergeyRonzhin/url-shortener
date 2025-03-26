@@ -13,16 +13,33 @@ import (
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-type HTTPHandlers struct {
-	storage storage.Storage
+type HTTPHandler struct {
+	storage storage.Repository
 }
 
-func NewHTTPHandlers() HTTPHandlers {
-	return HTTPHandlers{storage.NewStorage()}
+func NewHTTPHandler(storage storage.Repository) HTTPHandler {
+	return HTTPHandler{storage}
 }
 
-func (h HTTPHandlers) GETHandler(rw http.ResponseWriter, rq *http.Request) {
+func (h HTTPHandler) Index(rw http.ResponseWriter, rq *http.Request) {
+
+	switch rq.Method {
+	case http.MethodPost:
+		h.IndexPOST(rw, rq)
+	case http.MethodGet:
+		h.IndexGET(rw, rq)
+	default:
+		rw.WriteHeader(http.StatusBadRequest)
+	}
+}
+
+func (h HTTPHandler) IndexGET(rw http.ResponseWriter, rq *http.Request) {
 	id := strings.TrimPrefix(rq.URL.Path, "/")
+
+	if id == "" {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	url, exist := h.storage.Get(id)
 
@@ -35,7 +52,7 @@ func (h HTTPHandlers) GETHandler(rw http.ResponseWriter, rq *http.Request) {
 	rw.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func (h HTTPHandlers) POSTHandler(rw http.ResponseWriter, rq *http.Request) {
+func (h HTTPHandler) IndexPOST(rw http.ResponseWriter, rq *http.Request) {
 
 	contentType := rq.Header.Get("content-type")
 
