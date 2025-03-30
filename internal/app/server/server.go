@@ -5,6 +5,7 @@ import (
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/handlers"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
+	"github.com/go-chi/chi/v5"
 )
 
 type Server struct {
@@ -18,8 +19,12 @@ func New() Server {
 }
 
 func (s Server) Run() error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", s.httpHandlers.Index)
+	r := chi.NewRouter()
 
-	return http.ListenAndServe(":8080", mux)
+	r.Route("/", func(r chi.Router) {
+		r.Get("/{id}", s.httpHandlers.GET)
+		r.Post("/", s.httpHandlers.POST)
+	})
+
+	return http.ListenAndServe(":8080", r)
 }
