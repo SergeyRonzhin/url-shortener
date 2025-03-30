@@ -11,9 +11,9 @@ type Server struct {
 	httpHandlers handlers.HTTPHandler
 }
 
-func InitServer() Server {
+func New() Server {
 	return Server{
-		httpHandlers: handlers.NewHTTPHandler(storage.NewStorage()),
+		httpHandlers: handlers.New(storage.New()),
 	}
 }
 

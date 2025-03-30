@@ -10,7 +10,7 @@ type Repository interface {
 	ContainsValue(value string) (bool, string)
 }
 
-func NewStorage() Storage {
+func New() Storage {
 	return Storage{make(map[string]string)}
 }
 

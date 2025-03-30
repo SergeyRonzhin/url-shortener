@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIndexPOST(t *testing.T) {
+func TestPOST(t *testing.T) {
 	type request struct {
 		method      string
 		contentType string
@@ -97,8 +97,8 @@ func TestIndexPOST(t *testing.T) {
 		},
 	}
 
-	store := storage.NewStorage()
-	httpHandler := NewHTTPHandler(store)
+	store := storage.New()
+	httpHandler := New(store)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -107,7 +107,7 @@ func TestIndexPOST(t *testing.T) {
 
 			recorder := httptest.NewRecorder()
 
-			httpHandler.IndexPOST(recorder, rq)
+			httpHandler.POST(recorder, rq)
 
 			rs := recorder.Result()
 
@@ -129,7 +129,7 @@ func TestIndexPOST(t *testing.T) {
 	}
 }
 
-func TestIndexGET(t *testing.T) {
+func TestGET(t *testing.T) {
 	type request struct {
 		method string
 		param  string
@@ -180,17 +180,17 @@ func TestIndexGET(t *testing.T) {
 		},
 	}
 
-	store := storage.NewStorage()
+	store := storage.New()
 	store.Add("QWerTy", "https://google.com")
 
-	httpHandler := NewHTTPHandler(store)
+	httpHandler := New(store)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			rq := httptest.NewRequest(test.rq.method, "/"+test.rq.param, nil)
 			recorder := httptest.NewRecorder()
 
-			httpHandler.IndexGET(recorder, rq)
+			httpHandler.GET(recorder, rq)
 
 			rs := recorder.Result()
 
