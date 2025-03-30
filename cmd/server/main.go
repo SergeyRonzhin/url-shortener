@@ -13,20 +13,20 @@ import (
 )
 
 type Car struct {
-	Id    int
+	ID    int
 	Brand string
 	Model string
 }
 
 var cars = []Car{
-	{Id: 1, Brand: "Renault", Model: "Logan"},
-	{Id: 2, Brand: "Renault", Model: "Duster"},
-	{Id: 3, Brand: "BMW", Model: "X6"},
-	{Id: 4, Brand: "BMW", Model: "M5"},
-	{Id: 5, Brand: "VW", Model: "Passat"},
-	{Id: 6, Brand: "VW", Model: "Jetta"},
-	{Id: 7, Brand: "Audi", Model: "A4"},
-	{Id: 8, Brand: "Audi", Model: "Q7"},
+	{ID: 1, Brand: "Renault", Model: "Logan"},
+	{ID: 2, Brand: "Renault", Model: "Duster"},
+	{ID: 3, Brand: "BMW", Model: "X6"},
+	{ID: 4, Brand: "BMW", Model: "M5"},
+	{ID: 5, Brand: "VW", Model: "Passat"},
+	{ID: 6, Brand: "VW", Model: "Jetta"},
+	{ID: 7, Brand: "Audi", Model: "A4"},
+	{ID: 8, Brand: "Audi", Model: "Q7"},
 }
 
 func main() {

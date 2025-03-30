@@ -28,6 +28,7 @@ func TestRoute(t *testing.T) {
 
 	for _, test := range testTable {
 		rs, body := testRequest(t, serv, http.MethodGet, test.url)
+		defer rs.Body.Close()
 
 		assert.Equal(t, test.status, rs.StatusCode)
 		assert.Equal(t, test.want, body)

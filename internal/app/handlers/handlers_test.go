@@ -193,6 +193,7 @@ func TestGET(t *testing.T) {
 			httpHandler.GET(recorder, rq)
 
 			rs := recorder.Result()
+			defer rs.Body.Close()
 
 			assert.Equal(t, test.expected.code, rs.StatusCode)
 			assert.Equal(t, test.expected.location, rs.Header.Get("Location"))
