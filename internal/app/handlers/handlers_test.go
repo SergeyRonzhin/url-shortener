@@ -7,9 +7,17 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	options = config.Options{
+		Host:     ":8080",
+		Endpoint: "http://localhost:8080/",
+	}
 )
 
 func TestPOST(t *testing.T) {
@@ -98,7 +106,7 @@ func TestPOST(t *testing.T) {
 	}
 
 	store := storage.New()
-	httpHandler := New(store)
+	httpHandler := New(options, store)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -183,7 +191,7 @@ func TestGET(t *testing.T) {
 	store := storage.New()
 	store.Add("QWerTy", "https://google.com")
 
-	httpHandler := New(store)
+	httpHandler := New(options, store)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
