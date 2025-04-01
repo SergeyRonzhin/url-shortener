@@ -21,7 +21,7 @@ func (o *Options) Init() {
 	}
 
 	if o.ServerAddress == "" {
-		flag.StringVar(&o.ServerAddress, "a", ":8080", "Address for hosting service")
+		flag.StringVar(&o.ServerAddress, "a", "localhost:8080", "Address for hosting service")
 	}
 
 	if o.BaseURL == "" {
