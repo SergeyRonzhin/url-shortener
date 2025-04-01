@@ -25,6 +25,6 @@ func (o *Options) Init() {
 	}
 
 	if o.BaseURL == "" {
-		flag.StringVar(&o.BaseURL, "b", "http://localhost:8080/", "Base address for short links")
+		flag.StringVar(&o.BaseURL, "b", "http://localhost:8080", "Base address for short links")
 	}
 }
