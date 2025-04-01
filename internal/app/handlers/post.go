@@ -50,7 +50,7 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 	rw.Header().Add("content-type", "text/plain")
 	rw.WriteHeader(http.StatusCreated)
 
-	fmt.Fprint(rw, h.options.Endpoint+shortLink)
+	fmt.Fprint(rw, h.options.BaseUrl+shortLink)
 }
 
 func generateShortLink(length int) string {

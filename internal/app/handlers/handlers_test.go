@@ -15,8 +15,8 @@ import (
 
 var (
 	options = config.Options{
-		Host:     ":8080",
-		Endpoint: "http://localhost:8080/",
+		ServerAddress: ":8080",
+		BaseUrl:       "http://localhost:8080/",
 	}
 )
 

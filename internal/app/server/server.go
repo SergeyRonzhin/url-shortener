@@ -29,5 +29,5 @@ func (s Server) Run() error {
 		r.Post("/", s.httpHandlers.POST)
 	})
 
-	return http.ListenAndServe(s.options.Host, r)
+	return http.ListenAndServe(s.options.ServerAddress, r)
 }
