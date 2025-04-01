@@ -9,7 +9,7 @@ import (
 
 type Options struct {
 	ServerAddress string `env:"SERVER_ADDRESS"`
-	BaseUrl       string `env:"BASE_URL"`
+	BaseURL       string `env:"BASE_URL"`
 }
 
 func (o *Options) Init() {
@@ -24,7 +24,7 @@ func (o *Options) Init() {
 		flag.StringVar(&o.ServerAddress, "a", ":8080", "Address for hosting service")
 	}
 
-	if o.BaseUrl == "" {
-		flag.StringVar(&o.BaseUrl, "b", "http://localhost:8080/", "Base address for short links")
+	if o.BaseURL == "" {
+		flag.StringVar(&o.BaseURL, "b", "http://localhost:8080/", "Base address for short links")
 	}
 }
