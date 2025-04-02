@@ -20,11 +20,16 @@ func (o *Options) Init() {
 		fmt.Println(err)
 	}
 
+	serverAddress := flag.String("a", "localhost:8080", "Address for hosting service")
+	baseURL := flag.String("b", "http://localhost:8080", "Base address for short links")
+
+	flag.Parse()
+
 	if o.ServerAddress == "" {
-		flag.StringVar(&o.ServerAddress, "a", "localhost:8080", "Address for hosting service")
+		o.ServerAddress = *serverAddress
 	}
 
 	if o.BaseURL == "" {
-		flag.StringVar(&o.BaseURL, "b", "http://localhost:8080", "Base address for short links")
+		o.BaseURL = *baseURL
 	}
 }
