@@ -51,32 +51,6 @@ func TestPOST(t *testing.T) {
 				emptyResult: false,
 			},
 		},
-		// {
-		// 	name: "returns equal short links for same url",
-		// 	rq: request{
-		// 		method:      http.MethodPost,
-		// 		contentType: "text/plain",
-		// 		body:        "https://google.com",
-		// 	},
-		// 	expected: expected{
-		// 		code:        http.StatusCreated,
-		// 		contentType: "text/plain",
-		// 		emptyResult: false,
-		// 	},
-		// },
-		// {
-		// 	name: "returns different short links for different url",
-		// 	rq: request{
-		// 		method:      http.MethodPost,
-		// 		contentType: "text/plain",
-		// 		body:        "https://google.com",
-		// 	},
-		// 	expected: expected{
-		// 		code:        http.StatusCreated,
-		// 		contentType: "text/plain",
-		// 		emptyResult: false,
-		// 	},
-		// },
 		{
 			name: "returns 400 status for empty body in request",
 			rq: request{
