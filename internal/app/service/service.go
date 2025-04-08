@@ -4,17 +4,21 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 )
 
+type Repository interface {
+	Get(key string) (string, bool)
+	Add(key string, value string)
+	ContainsValue(value string) (bool, string)
+}
+
 type URLShortener struct {
-	storage storage.Repository
+	storage Repository
 }
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func New(storage storage.Repository) URLShortener {
+func New(storage Repository) URLShortener {
 	return URLShortener{storage}
 }
 
