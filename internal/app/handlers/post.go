@@ -3,13 +3,9 @@ package handlers
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"strings"
-	"time"
 )
-
-const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 
@@ -29,23 +25,12 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 
 	url := string(body)
 
-	fmt.Printf("url: %s\n", url)
-
 	if url == "" {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	shortLink := ""
-
-	if result, key := h.storage.ContainsValue(url); result {
-		shortLink = key
-	} else {
-		shortLink = generateShortLink(8)
-		h.storage.Add(shortLink, url)
-	}
-
-	fmt.Printf("shortLink: %s\n", shortLink)
+	shortLink := h.shortener.GetShortLink(url)
 
 	rw.Header().Add("content-type", "text/plain")
 	rw.WriteHeader(http.StatusCreated)
@@ -56,16 +41,4 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 		fmt.Println(err)
 		rw.WriteHeader(http.StatusBadRequest)
 	}
-}
-
-func generateShortLink(length int) string {
-
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	result := make([]byte, length)
-
-	for i := range length {
-		result[i] = charset[rand.Intn(len(charset))]
-	}
-
-	return string(result)
 }

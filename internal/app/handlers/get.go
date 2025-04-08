@@ -13,7 +13,7 @@ func (h HTTPHandler) GET(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	url, exist := h.storage.Get(id)
+	url, exist := h.shortener.GetOriginalURL(id)
 
 	if !exist {
 		rw.WriteHeader(http.StatusBadRequest)

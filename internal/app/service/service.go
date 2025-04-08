@@ -1,0 +1,52 @@
+package service
+
+import (
+	"fmt"
+	"math/rand"
+	"time"
+
+	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
+)
+
+type URLShortener struct {
+	storage storage.Repository
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func New(storage storage.Repository) URLShortener {
+	return URLShortener{storage}
+}
+
+func (s URLShortener) GetShortLink(url string) string {
+
+	shortLink := ""
+
+	if result, key := s.storage.ContainsValue(url); result {
+		shortLink = key
+	} else {
+		shortLink = generateShortLink(8)
+		s.storage.Add(shortLink, url)
+	}
+
+	fmt.Printf("url: %s\n", url)
+	fmt.Printf("shortLink: %s\n", shortLink)
+
+	return shortLink
+}
+
+func (s URLShortener) GetOriginalURL(shortLink string) (string, bool) {
+	return s.storage.Get(shortLink)
+}
+
+func generateShortLink(length int) string {
+
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	result := make([]byte, length)
+
+	for i := range length {
+		result[i] = charset[rand.Intn(len(charset))]
+	}
+
+	return string(result)
+}

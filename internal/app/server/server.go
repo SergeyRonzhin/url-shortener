@@ -5,6 +5,7 @@ import (
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/handlers"
+	"github.com/SergeyRonzhin/url-shortener/internal/app/service"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 	"github.com/go-chi/chi/v5"
 )
@@ -16,7 +17,7 @@ type Server struct {
 
 func New(options config.Options) Server {
 	return Server{
-		httpHandlers: handlers.New(options, storage.New()),
+		httpHandlers: handlers.New(options, service.New(storage.New())),
 		options:      options,
 	}
 }
