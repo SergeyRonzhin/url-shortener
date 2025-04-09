@@ -16,8 +16,10 @@ type Server struct {
 }
 
 func New(options config.Options) Server {
+	s := storage.New()
+
 	return Server{
-		httpHandlers: handlers.New(options, service.New(storage.New())),
+		httpHandlers: handlers.New(options, service.New(&s)),
 		options:      options,
 	}
 }
