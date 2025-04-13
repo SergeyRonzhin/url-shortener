@@ -21,7 +21,10 @@ iter4:
 
 iter5:
 	./shortenertestbeta -test.v -server-port=8080 -binary-path=cmd/shortener/shortener -test.run=^TestIteration5$
+	
+iter6:
+	./shortenertestbeta -test.v -source-path=./ -test.run=^TestIteration6$
 
 localtests: build linter tests
 
-autotests: iter1 iter2 iter3 iter4 iter5
+autotests: iter1 iter2 iter3 iter4 iter5 iter6

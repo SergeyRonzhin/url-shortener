@@ -12,6 +12,7 @@ import (
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 var (
@@ -81,7 +82,13 @@ func TestPOST(t *testing.T) {
 	}
 
 	store := storage.New()
-	httpHandler := New(options, service.New(&store))
+	logger, err := zap.NewDevelopment()
+
+	if err != nil {
+		panic(err)
+	}
+
+	httpHandler := New(&options, logger.Sugar(), service.New(&store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -164,9 +171,15 @@ func TestGET(t *testing.T) {
 	}
 
 	store := storage.New()
+	logger, err := zap.NewDevelopment()
+
+	if err != nil {
+		panic(err)
+	}
+
 	store.Add("QWerTy", "https://google.com")
 
-	httpHandler := New(options, service.New(&store))
+	httpHandler := New(&options, logger.Sugar(), service.New(&store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -32,9 +31,6 @@ func (s URLShortener) GetShortLink(url string) string {
 		shortLink = generateShortLink(8)
 		s.storage.Add(shortLink, url)
 	}
-
-	fmt.Printf("url: %s\n", url)
-	fmt.Printf("shortLink: %s\n", shortLink)
 
 	return shortLink
 }
