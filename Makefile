@@ -24,7 +24,10 @@ iter5:
 	
 iter6:
 	./shortenertestbeta -test.v -source-path=./ -test.run=^TestIteration6$
+	
+iter7:
+	./shortenertestbeta -test.v -source-path=./ -binary-path=cmd/shortener/shortener -test.run=^TestIteration7$
 
 localtests: build linter tests
 
-autotests: iter1 iter2 iter3 iter4 iter5 iter6
+autotests: iter1 iter2 iter3 iter4 iter5 iter6 iter7

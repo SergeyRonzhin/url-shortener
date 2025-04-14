@@ -31,6 +31,8 @@ func (s Server) Run() error {
 	r := chi.NewRouter()
 
 	r.Use(s.httpHandlers.Logging)
+
+	r.Post("/api/shorten", s.httpHandlers.Shorten)
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{id}", s.httpHandlers.GET)
 		r.Post("/", s.httpHandlers.POST)
