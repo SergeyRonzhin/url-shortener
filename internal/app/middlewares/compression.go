@@ -16,7 +16,7 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
-func (h *Middlewares) Compression(next http.Handler) http.Handler {
+func (m *Middlewares) Compression(next http.Handler) http.Handler {
 	compressFn := func(w http.ResponseWriter, r *http.Request) {
 
 		if !strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
