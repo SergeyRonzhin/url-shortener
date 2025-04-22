@@ -41,6 +41,7 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 
 	scan := bufio.NewScanner(file)
 	urls := make(map[string]URL)
+	size := 0
 
 	for scan.Scan() {
 		url := URL{}
@@ -51,9 +52,17 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 		}
 
 		urls[url.ShortURL] = url
+
+		index, err := strconv.Atoi(url.UUID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		size = max(size, index)
 	}
 
-	return &FileStorage{URLs: urls, Size: len(urls), options: options}, nil
+	return &FileStorage{URLs: urls, Size: size, options: options}, nil
 }
 
 func (s *FileStorage) Get(key string) (string, bool) {
