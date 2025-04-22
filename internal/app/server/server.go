@@ -20,7 +20,7 @@ type Server struct {
 }
 
 func New(options *config.Options, logger *zap.SugaredLogger) Server {
-	s := storage.New()
+	s := storage.NewFileStorage(options)
 	m := middlewares.New(logger)
 
 	return Server{

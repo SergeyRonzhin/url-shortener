@@ -82,7 +82,7 @@ func TestPOST(t *testing.T) {
 		},
 	}
 
-	store := storage.New()
+	store := storage.NewMemoryStorage()
 	logger, err := zap.NewDevelopment()
 
 	if err != nil {
@@ -171,7 +171,7 @@ func TestGET(t *testing.T) {
 		},
 	}
 
-	store := storage.New()
+	store := storage.NewMemoryStorage()
 	logger, err := zap.NewDevelopment()
 
 	if err != nil {
@@ -257,7 +257,7 @@ func TestShorten(t *testing.T) {
 		},
 	}
 
-	store := storage.New()
+	store := storage.NewMemoryStorage()
 	logger, err := zap.NewDevelopment()
 
 	if err != nil {
