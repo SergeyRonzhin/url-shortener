@@ -31,6 +31,9 @@ iter7:
 iter8:
 	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -test.run=^TestIteration8$
 
+iter9:
+	./shortenertestbeta -test.v -source-path=. -binary-path=cmd/shortener/shortener -file-storage-path=$TEMP_FILE -test.run=^TestIteration9$
+
 localtests: build linter tests
 
-autotests: iter1 iter2 iter3 iter4 iter5 iter6 iter7 iter8
+autotests: iter1 iter2 iter3 iter4 iter5 iter6 iter7 iter8 iter9
