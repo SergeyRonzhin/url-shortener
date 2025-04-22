@@ -1,9 +1,10 @@
 package storage
 
 import (
+	"bufio"
 	"encoding/json"
 	"os"
-	"strings"
+	"strconv"
 	"sync"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
@@ -22,43 +23,37 @@ type FileStorage struct {
 	mu      sync.Mutex
 }
 
-func NewFileStorage(options *config.Options) FileStorage {
+func NewFileStorage(options *config.Options) (*FileStorage, error) {
 
-	data, err := os.ReadFile(options.FileStoragePath)
+	file, err := os.OpenFile(options.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0666)
 
 	if err != nil {
-		// todo:
+		return nil, err
 	}
 
-	lines := []string{}
-
-	if len(data) != 0 {
-		lines = strings.Split(string(data), "\n")
-	}
-
-	urls := make(map[string]URL, len(lines))
-
-	for _, line := range lines {
-		url := URL{}
-
-		if line == "" {
-			continue
-		}
-
-		err = json.Unmarshal([]byte(line), &url)
+	defer func() {
+		err = file.Close()
 
 		if err != nil {
-			// todo:
+			return
+		}
+	}()
+
+	scan := bufio.NewScanner(file)
+	urls := make(map[string]URL)
+
+	for scan.Scan() {
+		url := URL{}
+		err = json.Unmarshal(scan.Bytes(), &url)
+
+		if err != nil {
+			return nil, err
 		}
 
 		urls[url.ShortURL] = url
 	}
 
-	return FileStorage{
-		URLs:    urls,
-		Size:    len(urls),
-		options: options,
-	}
+	return &FileStorage{URLs: urls, Size: len(urls), options: options}, nil
 }
 
 func (s *FileStorage) Get(key string) (string, bool) {
@@ -69,10 +64,60 @@ func (s *FileStorage) Get(key string) (string, bool) {
 	return url.OriginalURL, exist
 }
 
-func (s *FileStorage) Add(key string, value string) {
+func (s *FileStorage) Add(key string, value string) error {
 	s.mu.Lock()
-	// s.URLs[key] = value
+
+	url := URL{
+		UUID:        strconv.Itoa(s.Size + 1),
+		ShortURL:    key,
+		OriginalURL: value,
+	}
+
+	s.URLs[url.ShortURL] = url
+
+	data, err := json.Marshal(url)
+
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(s.options.FileStoragePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err = file.Close()
+
+		if err != nil {
+			return
+		}
+	}()
+
+	writer := bufio.NewWriter(file)
+
+	_, err = writer.Write(data)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = writer.WriteString("\n")
+
+	if err != nil {
+		return err
+	}
+
+	err = writer.Flush()
+
+	if err != nil {
+		return err
+	}
+
 	s.mu.Unlock()
+
+	return nil
 }
 
 func (s *FileStorage) ContainsValue(value string) (bool, string) {

@@ -21,10 +21,12 @@ func (s *MemoryStorage) Get(key string) (string, bool) {
 	return value, exist
 }
 
-func (s *MemoryStorage) Add(key string, value string) {
+func (s *MemoryStorage) Add(key string, value string) error {
 	s.mu.Lock()
 	s.links[key] = value
 	s.mu.Unlock()
+
+	return nil
 }
 
 func (s *MemoryStorage) ContainsValue(value string) (bool, string) {

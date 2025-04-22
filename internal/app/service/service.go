@@ -1,13 +1,14 @@
 package service
 
 import (
+	"log"
 	"math/rand"
 	"time"
 )
 
 type Repository interface {
 	Get(key string) (string, bool)
-	Add(key string, value string)
+	Add(key string, value string) error
 	ContainsValue(value string) (bool, string)
 }
 
@@ -29,7 +30,11 @@ func (s URLShortener) GetShortLink(url string) string {
 		shortLink = key
 	} else {
 		shortLink = generateShortLink(8)
-		s.storage.Add(shortLink, url)
+		err := s.storage.Add(shortLink, url)
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return shortLink

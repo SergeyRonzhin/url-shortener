@@ -20,11 +20,16 @@ type Server struct {
 }
 
 func New(options *config.Options, logger *zap.SugaredLogger) Server {
-	s := storage.NewFileStorage(options)
+	s, err := storage.NewFileStorage(options)
+
+	if err != nil {
+		panic(err)
+	}
+
 	m := middlewares.New(logger)
 
 	return Server{
-		httpHandlers: handlers.New(options, logger, service.New(&s)),
+		httpHandlers: handlers.New(options, logger, service.New(s)),
 		options:      options,
 		logger:       logger,
 		middlewares:  &m,
