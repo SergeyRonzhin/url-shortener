@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"encoding/json"
 	"os"
-	"strconv"
 	"sync"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
+	"github.com/google/uuid"
 )
 
 type URL struct {
@@ -18,7 +18,6 @@ type URL struct {
 
 type FileStorage struct {
 	URLs    map[string]URL
-	Size    int
 	options *config.Options
 	mu      sync.Mutex
 }
@@ -34,7 +33,6 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 
 	scan := bufio.NewScanner(file)
 	urls := make(map[string]URL)
-	size := 0
 
 	for scan.Scan() {
 		url := URL{}
@@ -45,17 +43,9 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 		}
 
 		urls[url.ShortURL] = url
-
-		index, err := strconv.Atoi(url.UUID)
-
-		if err != nil {
-			return nil, err
-		}
-
-		size = max(size, index)
 	}
 
-	return &FileStorage{URLs: urls, Size: size, options: options}, err
+	return &FileStorage{URLs: urls, options: options}, err
 }
 
 func (s *FileStorage) Get(key string) (string, bool) {
@@ -70,7 +60,7 @@ func (s *FileStorage) Add(key string, value string) error {
 	s.mu.Lock()
 
 	url := URL{
-		UUID:        strconv.Itoa(s.Size + 1),
+		UUID:        uuid.New().String(),
 		ShortURL:    key,
 		OriginalURL: value,
 	}
