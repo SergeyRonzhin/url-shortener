@@ -1,13 +1,13 @@
 package middlewares
 
 import (
-	"go.uber.org/zap"
+	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
 )
 
 type Middlewares struct {
-	logger *zap.SugaredLogger
+	logger *logger.Logger
 }
 
-func New(logger *zap.SugaredLogger) Middlewares {
+func New(logger *logger.Logger) Middlewares {
 	return Middlewares{logger}
 }

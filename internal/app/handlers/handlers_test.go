@@ -5,23 +5,34 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
+	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/service"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
 
 var (
-	options = config.Options{
-		ServerAddress: ":8080",
-		BaseURL:       "http://localhost:8080",
-	}
+	options *config.Options
 )
+
+func TestMain(m *testing.M) {
+	var err error
+	options, err = config.New()
+
+	if err != nil {
+		panic(err)
+	}
+
+	exitCode := m.Run()
+
+	os.Exit(exitCode)
+}
 
 func TestPOST(t *testing.T) {
 	type request struct {
@@ -83,13 +94,13 @@ func TestPOST(t *testing.T) {
 	}
 
 	store := storage.NewMemoryStorage()
-	logger, err := zap.NewDevelopment()
+	logger, err := logger.New(options)
 
 	if err != nil {
 		panic(err)
 	}
 
-	httpHandler := New(&options, logger.Sugar(), service.New(&store))
+	httpHandler := New(options, logger, service.New(&store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -172,7 +183,7 @@ func TestGET(t *testing.T) {
 	}
 
 	store := storage.NewMemoryStorage()
-	logger, err := zap.NewDevelopment()
+	logger, err := logger.New(options)
 
 	if err != nil {
 		panic(err)
@@ -180,7 +191,7 @@ func TestGET(t *testing.T) {
 
 	store.Add("QWerTy", "https://google.com")
 
-	httpHandler := New(&options, logger.Sugar(), service.New(&store))
+	httpHandler := New(options, logger, service.New(&store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -258,13 +269,13 @@ func TestShorten(t *testing.T) {
 	}
 
 	store := storage.NewMemoryStorage()
-	logger, err := zap.NewDevelopment()
+	logger, err := logger.New(options)
 
 	if err != nil {
 		panic(err)
 	}
 
-	httpHandler := New(&options, logger.Sugar(), service.New(&store))
+	httpHandler := New(options, logger, service.New(&store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

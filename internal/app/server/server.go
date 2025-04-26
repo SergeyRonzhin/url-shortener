@@ -5,21 +5,21 @@ import (
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/handlers"
+	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/middlewares"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/service"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
 )
 
 type Server struct {
 	httpHandlers handlers.HTTPHandler
 	options      *config.Options
-	logger       *zap.SugaredLogger
+	logger       *logger.Logger
 	middlewares  *middlewares.Middlewares
 }
 
-func New(options *config.Options, logger *zap.SugaredLogger) Server {
+func New(options *config.Options, logger *logger.Logger) Server {
 	s, err := storage.NewFileStorage(options)
 
 	if err != nil {
