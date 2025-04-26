@@ -30,9 +30,7 @@ func New(o *config.Options) (*Logger, error) {
 		panic(err)
 	}
 
-	defer func() {
-		err = zl.Sync()
-	}()
+	defer func() { err = zl.Sync() }()
 
 	return &Logger{zl.Sugar()}, err
 }

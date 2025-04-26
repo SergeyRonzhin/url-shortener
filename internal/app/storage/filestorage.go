@@ -24,20 +24,13 @@ type FileStorage struct {
 }
 
 func NewFileStorage(options *config.Options) (*FileStorage, error) {
-
 	file, err := os.OpenFile(options.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0666)
 
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		err = file.Close()
-
-		if err != nil {
-			return
-		}
-	}()
+	defer func() { err = file.Close() }()
 
 	scan := bufio.NewScanner(file)
 	urls := make(map[string]URL)
@@ -62,7 +55,7 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 		size = max(size, index)
 	}
 
-	return &FileStorage{URLs: urls, Size: size, options: options}, nil
+	return &FileStorage{URLs: urls, Size: size, options: options}, err
 }
 
 func (s *FileStorage) Get(key string) (string, bool) {
@@ -96,13 +89,7 @@ func (s *FileStorage) Add(key string, value string) error {
 		return err
 	}
 
-	defer func() {
-		err = file.Close()
-
-		if err != nil {
-			return
-		}
-	}()
+	defer func() { err = file.Close() }()
 
 	writer := bufio.NewWriter(file)
 
@@ -126,7 +113,7 @@ func (s *FileStorage) Add(key string, value string) error {
 
 	s.mu.Unlock()
 
-	return nil
+	return err
 }
 
 func (s *FileStorage) ContainsValue(value string) (bool, string) {

@@ -31,7 +31,11 @@ func (m *Middlewares) Compression(next http.Handler) http.Handler {
 			return
 		}
 
-		defer gzReader.Close()
+		defer func() {
+			err := gzReader.Close()
+			m.logError(&err)
+		}()
+
 		r.Body = gzReader
 
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
@@ -40,7 +44,11 @@ func (m *Middlewares) Compression(next http.Handler) http.Handler {
 		}
 
 		gzWriter := gzip.NewWriter(w)
-		defer gzWriter.Close()
+
+		defer func() {
+			err := gzWriter.Close()
+			m.logError(&err)
+		}()
 
 		w.Header().Set("Content-Encoding", "gzip")
 		r.Header.Set("Content-Type", "text/plain")
@@ -49,4 +57,10 @@ func (m *Middlewares) Compression(next http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(compressFn)
+}
+
+func (m *Middlewares) logError(err *error) {
+	if err != nil {
+		m.logger.Error(err)
+	}
 }
