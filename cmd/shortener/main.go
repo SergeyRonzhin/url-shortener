@@ -12,15 +12,18 @@ func main() {
 	logger, err := zap.NewDevelopment()
 
 	if err != nil {
-		panic("cannot initialize zap logger")
+		panic(err)
 	}
 
 	defer logger.Sync()
 
-	options := config.Options{}
-	options.Init()
+	o, err := config.New()
 
-	if err := server.New(&options, logger.Sugar()).Run(); err != nil {
+	if err != nil {
+		panic(err)
+	}
+
+	if err := server.New(o, logger.Sugar()).Run(); err != nil {
 		panic(err)
 	}
 }

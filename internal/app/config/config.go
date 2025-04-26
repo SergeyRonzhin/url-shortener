@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -13,12 +12,13 @@ type Options struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 }
 
-func (o *Options) Init() {
+func New() (*Options, error) {
 
+	o := &Options{}
 	err := env.Parse(o)
 
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	serverAddress := flag.String("a", "localhost:8080", "Address for hosting service")
@@ -38,4 +38,6 @@ func (o *Options) Init() {
 	if o.FileStoragePath == "" {
 		o.FileStoragePath = *pathToFile
 	}
+
+	return o, nil
 }
