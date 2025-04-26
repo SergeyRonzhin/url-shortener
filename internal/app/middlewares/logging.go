@@ -6,27 +6,23 @@ import (
 )
 
 type (
-	rsData struct {
-		status int
-		size   int
-	}
-
 	logRW struct {
 		http.ResponseWriter
-		responseData *rsData
+		status int
+		size   int
 	}
 )
 
 func (r *logRW) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
-	r.responseData.size += size
+	r.size += size
 
 	return size, err
 }
 
 func (r *logRW) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
-	r.responseData.status = statusCode
+	r.status = statusCode
 }
 
 func (m *Middlewares) Logging(baseHandler http.Handler) http.Handler {
@@ -36,17 +32,19 @@ func (m *Middlewares) Logging(baseHandler http.Handler) http.Handler {
 		uri := r.RequestURI
 		method := r.Method
 
-		lw := logRW{w, &rsData{}}
-		baseHandler.ServeHTTP(&lw, r)
+		lw := logRW{
+			ResponseWriter: w,
+		}
 
+		baseHandler.ServeHTTP(&lw, r)
 		duration := time.Since(start)
 
 		m.logger.Infoln(
 			"uri", uri,
 			"method", method,
 			"duration", duration,
-			"status", lw.responseData.status,
-			"size", lw.responseData.size,
+			"status", lw.status,
+			"size", lw.size,
 		)
 	}
 
