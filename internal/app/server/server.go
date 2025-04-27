@@ -19,21 +19,18 @@ type Server struct {
 	middlewares  *middlewares.Middlewares
 }
 
-func New(options *config.Options, logger *logger.Logger) Server {
+func New(options *config.Options, logger *logger.Logger) (Server, error) {
 	s, err := storage.NewFileStorage(options)
-
-	if err != nil {
-		panic(err)
-	}
-
 	m := middlewares.New(logger)
 
-	return Server{
+	server := Server{
 		httpHandlers: handlers.New(options, logger, service.New(s)),
 		options:      options,
 		logger:       logger,
 		middlewares:  &m,
 	}
+
+	return server, err
 }
 
 func (s Server) Run() error {

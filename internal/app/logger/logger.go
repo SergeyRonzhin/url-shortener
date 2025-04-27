@@ -26,10 +26,6 @@ func New(o *config.Options) (*Logger, error) {
 
 	zl, err := c.Build()
 
-	if err != nil {
-		panic(err)
-	}
-
 	defer func() { err = zl.Sync() }()
 
 	return &Logger{zl.Sugar()}, err

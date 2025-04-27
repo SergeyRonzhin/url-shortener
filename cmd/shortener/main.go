@@ -20,7 +20,13 @@ func main() {
 		panic(err)
 	}
 
-	if err := server.New(options, logger).Run(); err != nil {
+	server, err := server.New(options, logger)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err := server.Run(); err != nil {
 		panic(err)
 	}
 }
