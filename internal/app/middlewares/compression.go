@@ -27,6 +27,7 @@ func (m *Middlewares) Compression(next http.Handler) http.Handler {
 		gzReader, err := gzip.NewReader(r.Body)
 
 		if err != nil {
+			m.logger.Error(err)
 			http.Error(w, "invalid gzip request", http.StatusBadRequest)
 			return
 		}

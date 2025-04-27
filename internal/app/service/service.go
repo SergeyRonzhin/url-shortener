@@ -1,7 +1,6 @@
 package service
 
 import (
-	"log"
 	"math/rand"
 	"time"
 )
@@ -22,22 +21,19 @@ func New(storage Repository) URLShortener {
 	return URLShortener{storage}
 }
 
-func (s URLShortener) GetShortLink(url string) string {
+func (s URLShortener) GetShortLink(url string) (string, error) {
 
 	shortLink := ""
+	var err error
 
 	if result, key := s.storage.ContainsValue(url); result {
 		shortLink = key
 	} else {
 		shortLink = generateShortLink(8)
-		err := s.storage.Add(shortLink, url)
-
-		if err != nil {
-			log.Fatal(err)
-		}
+		err = s.storage.Add(shortLink, url)
 	}
 
-	return shortLink
+	return shortLink, err
 }
 
 func (s URLShortener) GetOriginalURL(shortLink string) (string, bool) {

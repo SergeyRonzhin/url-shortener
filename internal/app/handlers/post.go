@@ -19,6 +19,7 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 	body, err := io.ReadAll(rq.Body)
 
 	if err != nil {
+		h.logger.Error(err)
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -30,7 +31,12 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	shortLink := h.shortener.GetShortLink(url)
+	shortLink, err := h.shortener.GetShortLink(url)
+
+	if err != nil {
+		h.logger.Error(err)
+		rw.WriteHeader(http.StatusBadRequest)
+	}
 
 	rw.Header().Add("content-type", "text/plain")
 	rw.WriteHeader(http.StatusCreated)
@@ -38,7 +44,7 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 	_, err = fmt.Fprint(rw, h.options.BaseURL+"/"+shortLink)
 
 	if err != nil {
-		fmt.Println(err)
+		h.logger.Error(err)
 		rw.WriteHeader(http.StatusBadRequest)
 	}
 }

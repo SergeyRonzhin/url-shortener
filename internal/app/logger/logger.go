@@ -17,7 +17,7 @@ func New(o *config.Options) (*Logger, error) {
 	level, err := zapcore.ParseLevel(o.LogLevel)
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	c.Level.SetLevel(level)

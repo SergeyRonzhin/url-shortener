@@ -27,6 +27,7 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 	err := json.NewDecoder(rq.Body).Decode(&dataRq)
 
 	if err != nil {
+		h.logger.Error(err)
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -36,7 +37,13 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	shortLink := h.shortener.GetShortLink(dataRq.URL)
+	shortLink, err := h.shortener.GetShortLink(dataRq.URL)
+
+	if err != nil {
+		h.logger.Error(err)
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	dataRs := ShortenRs{
 		Result: h.options.BaseURL + "/" + shortLink,
@@ -45,6 +52,7 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 	rs, err := json.Marshal(dataRs)
 
 	if err != nil {
+		h.logger.Error(err)
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
