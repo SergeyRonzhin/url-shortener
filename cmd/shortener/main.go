@@ -2,15 +2,31 @@ package main
 
 import (
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
+	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/server"
 )
 
 func main() {
 
-	options := config.Options{}
-	options.Init()
+	options, err := config.New()
 
-	if err := server.New(options).Run(); err != nil {
+	if err != nil {
+		panic(err)
+	}
+
+	logger, err := logger.New(options)
+
+	if err != nil {
+		panic(err)
+	}
+
+	server, err := server.New(options, logger)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err := server.Run(); err != nil {
 		panic(err)
 	}
 }

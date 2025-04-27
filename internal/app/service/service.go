@@ -1,14 +1,13 @@
 package service
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
 
 type Repository interface {
 	Get(key string) (string, bool)
-	Add(key string, value string)
+	Add(key string, value string) error
 	ContainsValue(value string) (bool, string)
 }
 
@@ -22,21 +21,19 @@ func New(storage Repository) URLShortener {
 	return URLShortener{storage}
 }
 
-func (s URLShortener) GetShortLink(url string) string {
+func (s URLShortener) GetShortLink(url string) (string, error) {
 
 	shortLink := ""
+	var err error
 
 	if result, key := s.storage.ContainsValue(url); result {
 		shortLink = key
 	} else {
 		shortLink = generateShortLink(8)
-		s.storage.Add(shortLink, url)
+		err = s.storage.Add(shortLink, url)
 	}
 
-	fmt.Printf("url: %s\n", url)
-	fmt.Printf("shortLink: %s\n", shortLink)
-
-	return shortLink
+	return shortLink, err
 }
 
 func (s URLShortener) GetOriginalURL(shortLink string) (string, bool) {

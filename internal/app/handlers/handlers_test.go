@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
+	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/service"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
@@ -15,11 +18,21 @@ import (
 )
 
 var (
-	options = config.Options{
-		ServerAddress: ":8080",
-		BaseURL:       "http://localhost:8080",
-	}
+	options *config.Options
 )
+
+func TestMain(m *testing.M) {
+	var err error
+	options, err = config.New()
+
+	if err != nil {
+		panic(err)
+	}
+
+	exitCode := m.Run()
+
+	os.Exit(exitCode)
+}
 
 func TestPOST(t *testing.T) {
 	type request struct {
@@ -80,8 +93,14 @@ func TestPOST(t *testing.T) {
 		},
 	}
 
-	store := storage.New()
-	httpHandler := New(options, service.New(&store))
+	store := storage.NewMemoryStorage()
+	logger, err := logger.New(options)
+
+	if err != nil {
+		panic(err)
+	}
+
+	httpHandler := New(options, logger, service.New(&store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -163,10 +182,16 @@ func TestGET(t *testing.T) {
 		},
 	}
 
-	store := storage.New()
+	store := storage.NewMemoryStorage()
+	logger, err := logger.New(options)
+
+	if err != nil {
+		panic(err)
+	}
+
 	store.Add("QWerTy", "https://google.com")
 
-	httpHandler := New(options, service.New(&store))
+	httpHandler := New(options, logger, service.New(&store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -180,6 +205,108 @@ func TestGET(t *testing.T) {
 
 			assert.Equal(t, test.expected.code, rs.StatusCode)
 			assert.Equal(t, test.expected.location, rs.Header.Get("Location"))
+		})
+	}
+}
+
+func TestShorten(t *testing.T) {
+	type request struct {
+		method      string
+		contentType string
+		body        string
+	}
+
+	type expected struct {
+		code        int
+		contentType string
+		emptyResult bool
+	}
+
+	tests := []struct {
+		name     string
+		rq       request
+		expected expected
+	}{
+		{
+			name: "successed returns short link",
+			rq: request{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body:        `{ "url": "https://practicum.yandex.ru" }`,
+			},
+			expected: expected{
+				code:        http.StatusCreated,
+				contentType: "application/json",
+				emptyResult: false,
+			},
+		},
+		{
+			name: "returns 400 status for empty url in request",
+			rq: request{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body:        `{ "url": "" }`,
+			},
+			expected: expected{
+				code:        http.StatusBadRequest,
+				contentType: "",
+				emptyResult: true,
+			},
+		},
+		{
+			name: "returns 400 status for unsupported content type",
+			rq: request{
+				method:      http.MethodPost,
+				contentType: "application/xml",
+				body:        "<url>https://google.com</url>",
+			},
+			expected: expected{
+				code:        http.StatusBadRequest,
+				contentType: "",
+				emptyResult: true,
+			},
+		},
+	}
+
+	store := storage.NewMemoryStorage()
+	logger, err := logger.New(options)
+
+	if err != nil {
+		panic(err)
+	}
+
+	httpHandler := New(options, logger, service.New(&store))
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			rq := httptest.NewRequest(test.rq.method, "/api/shorten", strings.NewReader(test.rq.body))
+			rq.Header.Set("Content-Type", test.rq.contentType)
+
+			recorder := httptest.NewRecorder()
+
+			httpHandler.Shorten(recorder, rq)
+
+			rs := recorder.Result()
+
+			assert.Equal(t, test.expected.code, rs.StatusCode)
+			assert.Equal(t, test.expected.contentType, rs.Header.Get("Content-Type"))
+
+			defer rs.Body.Close()
+
+			dataRs := ShortenRs{}
+
+			if test.expected.contentType == "application/json" {
+
+				err := json.NewDecoder(rs.Body).Decode(&dataRs)
+				require.NoError(t, err)
+			}
+
+			if !test.expected.emptyResult {
+				assert.NotEmpty(t, dataRs.Result)
+			} else {
+				assert.Empty(t, dataRs.Result)
+			}
 		})
 	}
 }
