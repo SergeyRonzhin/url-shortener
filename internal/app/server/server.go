@@ -38,13 +38,14 @@ func (s Server) Run() error {
 
 	r.Use(s.middlewares.Logging, s.middlewares.Compression)
 
+	r.Get("/ping", s.httpHandlers.Ping)
 	r.Post("/api/shorten", s.httpHandlers.Shorten)
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{id}", s.httpHandlers.GET)
 		r.Post("/", s.httpHandlers.POST)
 	})
 
-	s.logger.Info("server started")
+	s.logger.Info("server started on address: \"" + s.options.ServerAddress + "\"")
 
 	return http.ListenAndServe(s.options.ServerAddress, r)
 }

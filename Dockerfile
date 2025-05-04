@@ -18,6 +18,7 @@ ENV SERVER_ADDRESS=localhost:8080
 ENV FILE_STORAGE_PATH=storage.json
 ENV LOG_LEVEL=info
 ENV LOG_ENCODING=json
+ENV DATABASE_DSN=host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable
 
 EXPOSE 8080
 CMD ["./shortener"]
