@@ -26,7 +26,7 @@ func New() (*Options, error) {
 
 	serverAddress := flag.String("a", "localhost:8080", "Address for hosting service")
 	baseURL := flag.String("b", "http://localhost:8080", "Base address for short links")
-	pathToFile := flag.String("f", "storage.json", "Path to file storage")
+	pathToFile := flag.String("f", "", "Path to file storage")
 	logLevel := flag.String("log_level", "info", "Log level")
 	logEncoding := flag.String("log_encode", "json", "Log encoding")
 	databaseDsn := flag.String("d", "", "Connection string to database")

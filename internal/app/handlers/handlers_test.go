@@ -100,7 +100,7 @@ func TestPOST(t *testing.T) {
 		panic(err)
 	}
 
-	httpHandler := New(options, logger, service.New(&store))
+	httpHandler := New(options, logger, service.New(store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -191,7 +191,7 @@ func TestGET(t *testing.T) {
 
 	store.Add("QWerTy", "https://google.com")
 
-	httpHandler := New(options, logger, service.New(&store))
+	httpHandler := New(options, logger, service.New(store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -275,7 +275,7 @@ func TestShorten(t *testing.T) {
 		panic(err)
 	}
 
-	httpHandler := New(options, logger, service.New(&store))
+	httpHandler := New(options, logger, service.New(store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

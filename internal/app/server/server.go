@@ -19,8 +19,13 @@ type Server struct {
 	middlewares  *middlewares.Middlewares
 }
 
-func New(options *config.Options, logger *logger.Logger) (Server, error) {
-	s, err := storage.NewFileStorage(options)
+func New(options *config.Options, logger *logger.Logger) (*Server, error) {
+	s, err := getStorage(options, logger)
+
+	if err != nil {
+		return nil, err
+	}
+
 	m := middlewares.New(logger)
 
 	server := Server{
@@ -30,7 +35,7 @@ func New(options *config.Options, logger *logger.Logger) (Server, error) {
 		middlewares:  &m,
 	}
 
-	return server, err
+	return &server, err
 }
 
 func (s Server) Run() error {
@@ -48,4 +53,16 @@ func (s Server) Run() error {
 	s.logger.Info("server started on address: \"" + s.options.ServerAddress + "\"")
 
 	return http.ListenAndServe(s.options.ServerAddress, r)
+}
+
+func getStorage(o *config.Options, logger *logger.Logger) (service.Repository, error) {
+	if o.DatabaseDsn != "" {
+		return storage.NewDBStorage(o, logger)
+	}
+
+	if o.FileStoragePath != "" {
+		return storage.NewFileStorage(o)
+	}
+
+	return storage.NewMemoryStorage(), nil
 }

@@ -9,8 +9,8 @@ type MemoryStorage struct {
 	mu    sync.Mutex
 }
 
-func NewMemoryStorage() MemoryStorage {
-	return MemoryStorage{links: make(map[string]string)}
+func NewMemoryStorage() *MemoryStorage {
+	return &MemoryStorage{links: make(map[string]string)}
 }
 
 func (s *MemoryStorage) Get(key string) (string, bool) {
