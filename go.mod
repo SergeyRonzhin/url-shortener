@@ -18,6 +18,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/skovtunenko/graterm v1.2.0
 	go.uber.org/zap v1.27.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

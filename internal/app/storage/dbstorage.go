@@ -6,21 +6,13 @@ import (
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type DBStorage struct {
-	DB     *sqlx.DB
-	Logger *logger.Logger
-}
-
-type DBURL struct {
-	UUID        uuid.UUID `db:"uuid"`
-	ShortURL    string    `db:"short_url"`
-	OriginalURL string    `db:"original_url"`
-	CreatedAt   time.Time `db:"created_at"`
+	db     *sqlx.DB
+	logger *logger.Logger
 }
 
 var (
@@ -50,8 +42,8 @@ func NewDBStorage(options *config.Options, logger *logger.Logger) (*DBStorage, e
 	}
 
 	return &DBStorage{
-		DB:     db,
-		Logger: logger,
+		db:     db,
+		logger: logger,
 	}, nil
 }
 
@@ -60,13 +52,13 @@ func (s *DBStorage) Get(key string) (string, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	row := s.DB.QueryRowContext(ctx, "SELECT original_url FROM "+tableName+" WHERE short_url = $1", key)
+	row := s.db.QueryRowContext(ctx, "SELECT original_url FROM "+tableName+" WHERE short_url = $1", key)
 	var url string
 
 	err := row.Scan(&url)
 
 	if err != nil {
-		s.Logger.Error(err)
+		s.logger.Error(err)
 		return "", false
 	}
 
@@ -75,7 +67,7 @@ func (s *DBStorage) Get(key string) (string, bool) {
 
 func (s *DBStorage) Add(key string, value string) error {
 
-	_, err := s.DB.Exec("INSERT INTO "+tableName+" (short_url, original_url) VALUES ($1, $2)", key, value)
+	_, err := s.db.Exec("INSERT INTO "+tableName+" (short_url, original_url) VALUES ($1, $2)", key, value)
 	return err
 }
 
@@ -84,17 +76,21 @@ func (s *DBStorage) ContainsValue(value string) (bool, string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	row := s.DB.QueryRowContext(ctx, "SELECT short_url FROM "+tableName+" WHERE original_url = $1", value)
+	row := s.db.QueryRowContext(ctx, "SELECT short_url FROM "+tableName+" WHERE original_url = $1", value)
 	var url string
 
 	err := row.Scan(&url)
 
 	if err != nil {
-		s.Logger.Error(err)
+		s.logger.Error(err)
 		return false, ""
 	}
 
 	return true, url
+}
+
+func (s DBStorage) Close() error {
+	return s.db.Close()
 }
 
 func initDatabase(db *sqlx.DB) error {

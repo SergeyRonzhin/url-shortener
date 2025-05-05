@@ -1,7 +1,11 @@
 package server
 
 import (
+	"context"
+	"errors"
 	"net/http"
+	"syscall"
+	"time"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/handlers"
@@ -10,6 +14,7 @@ import (
 	"github.com/SergeyRonzhin/url-shortener/internal/app/service"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 	"github.com/go-chi/chi/v5"
+	"github.com/skovtunenko/graterm"
 )
 
 type Server struct {
@@ -17,14 +22,28 @@ type Server struct {
 	options      *config.Options
 	logger       *logger.Logger
 	middlewares  *middlewares.Middlewares
+	term         *graterm.Terminator
 }
 
-func New(options *config.Options, logger *logger.Logger) (*Server, error) {
+func New(options *config.Options, logger *logger.Logger) (*Server, context.Context, error) {
 	s, err := getStorage(options, logger)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
+	term, ctx := graterm.NewWithSignals(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+
+	term.WithOrder(1).
+		WithName("Database").
+		Register(500*time.Millisecond, func(ctx context.Context) {
+			logger.Info("terminating DB...")
+			defer logger.Info("...DB terminated")
+
+			if err := s.Close(); err != nil {
+				logger.Error(err)
+			}
+		})
 
 	m := middlewares.New(logger)
 
@@ -33,12 +52,13 @@ func New(options *config.Options, logger *logger.Logger) (*Server, error) {
 		options:      options,
 		logger:       logger,
 		middlewares:  &m,
+		term:         term,
 	}
 
-	return &server, err
+	return &server, ctx, err
 }
 
-func (s Server) Run() error {
+func (s Server) Run(ctx context.Context) {
 	r := chi.NewRouter()
 
 	r.Use(s.middlewares.Logging, s.middlewares.Compression)
@@ -50,9 +70,33 @@ func (s Server) Run() error {
 		r.Post("/", s.httpHandlers.POST)
 	})
 
+	httpServer := &http.Server{
+		Addr:    s.options.ServerAddress,
+		Handler: r,
+	}
+
+	s.term.WithOrder(1).
+		WithName("HTTPServer").
+		Register(500*time.Millisecond, func(ctx context.Context) {
+			s.logger.Info("terminating HTTPServer...")
+			defer s.logger.Info("...HTTPServer terminated")
+
+			if err := httpServer.Shutdown(ctx); err != nil {
+				s.logger.Error(err)
+			}
+		})
+
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.logger.Error("terminated HTTP Server: %+v\n", err)
+		}
+	}()
+
 	s.logger.Info("server started on address: \"" + s.options.ServerAddress + "\"")
 
-	return http.ListenAndServe(s.options.ServerAddress, r)
+	if err := s.term.Wait(ctx, 5*time.Second); err != nil {
+		s.logger.Error("graceful termination period was timed out: %+v", err)
+	}
 }
 
 func getStorage(o *config.Options, logger *logger.Logger) (service.Repository, error) {

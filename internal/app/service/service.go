@@ -9,6 +9,7 @@ type Repository interface {
 	Get(key string) (string, bool)
 	Add(key string, value string) error
 	ContainsValue(value string) (bool, string)
+	Close() error
 }
 
 type URLShortener struct {

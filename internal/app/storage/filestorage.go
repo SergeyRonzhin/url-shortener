@@ -20,6 +20,7 @@ type FileStorage struct {
 	URLs    map[string]URL
 	options *config.Options
 	mu      sync.Mutex
+	file    *os.File
 }
 
 func NewFileStorage(options *config.Options) (*FileStorage, error) {
@@ -28,8 +29,6 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	defer func() { err = file.Close() }()
 
 	scan := bufio.NewScanner(file)
 	urls := make(map[string]URL)
@@ -45,7 +44,11 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 		urls[url.ShortURL] = url
 	}
 
-	return &FileStorage{URLs: urls, options: options}, err
+	return &FileStorage{
+		URLs:    urls,
+		options: options,
+		file:    file,
+	}, err
 }
 
 func (s *FileStorage) Get(key string) (string, bool) {
@@ -73,15 +76,7 @@ func (s *FileStorage) Add(key string, value string) error {
 		return err
 	}
 
-	file, err := os.OpenFile(s.options.FileStoragePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-
-	if err != nil {
-		return err
-	}
-
-	defer func() { err = file.Close() }()
-
-	writer := bufio.NewWriter(file)
+	writer := bufio.NewWriter(s.file)
 
 	_, err = writer.Write(data)
 
@@ -114,4 +109,8 @@ func (s *FileStorage) ContainsValue(value string) (bool, string) {
 	}
 
 	return false, ""
+}
+
+func (s *FileStorage) Close() error {
+	return s.file.Close()
 }

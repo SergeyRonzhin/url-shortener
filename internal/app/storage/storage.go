@@ -38,3 +38,7 @@ func (s *MemoryStorage) ContainsValue(value string) (bool, string) {
 
 	return false, ""
 }
+
+func (s *MemoryStorage) Close() error {
+	return nil
+}
