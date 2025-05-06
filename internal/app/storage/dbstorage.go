@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
@@ -16,8 +17,9 @@ type DBStorage struct {
 }
 
 var (
-	tableName = "urls"
-	initQuery = `CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+	queryTimeout = 5 * time.Second
+	tableName    = "urls"
+	initQuery    = `CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 	
 	CREATE TABLE IF NOT EXISTS ` + tableName + ` (
 		uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -35,11 +37,7 @@ func NewDBStorage(options *config.Options, logger *logger.Logger) (*DBStorage, e
 		return nil, err
 	}
 
-	err = initDatabase(db)
-
-	if err != nil {
-		return nil, err
-	}
+	db.MustExec(initQuery)
 
 	return &DBStorage{
 		db:     db,
@@ -47,54 +45,70 @@ func NewDBStorage(options *config.Options, logger *logger.Logger) (*DBStorage, e
 	}, nil
 }
 
-func (s *DBStorage) Get(key string) (string, bool) {
+func (s *DBStorage) Add(url URL) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
-	row := s.db.QueryRowContext(ctx, "SELECT original_url FROM "+tableName+" WHERE short_url = $1", key)
-	var url string
+	_, err := s.db.ExecContext(ctx, `INSERT INTO `+tableName+` (uuid, short_url, original_url) 
+		VALUES (:uuid, :short_url, :original_url)`, url)
 
-	err := row.Scan(&url)
-
-	if err != nil {
-		s.logger.Error(err)
-		return "", false
-	}
-
-	return url, true
-}
-
-func (s *DBStorage) Add(key string, value string) error {
-
-	_, err := s.db.Exec("INSERT INTO "+tableName+" (short_url, original_url) VALUES ($1, $2)", key, value)
 	return err
 }
 
-func (s *DBStorage) ContainsValue(value string) (bool, string) {
+func (s *DBStorage) Batch(urls []URL) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	_, err := s.db.NamedExecContext(ctx, `INSERT INTO `+tableName+` (uuid, short_url, original_url)
+        VALUES (:uuid, :short_url, :original_url)`, urls)
+
+	return err
+}
+
+func (s *DBStorage) GetShortURL(original string) (bool, string) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	row := s.db.QueryRowContext(ctx, "SELECT short_url FROM "+tableName+" WHERE original_url = $1", original)
+	var short string
+
+	err := row.Scan(&short)
+
+	switch {
+	case err == sql.ErrNoRows:
+		return false, ""
+	case err != nil:
+		s.logger.Error(err)
+		return false, ""
+	default:
+		return true, short
+	}
+}
+
+func (s *DBStorage) GetOriginalURL(short string) (bool, string) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	row := s.db.QueryRowContext(ctx, "SELECT short_url FROM "+tableName+" WHERE original_url = $1", value)
-	var url string
+	row := s.db.QueryRowContext(ctx, "SELECT original_url FROM "+tableName+" WHERE short_url = $1", short)
+	var original string
 
-	err := row.Scan(&url)
+	err := row.Scan(&original)
 
-	if err != nil {
+	switch {
+	case err == sql.ErrNoRows:
+		return false, ""
+	case err != nil:
 		s.logger.Error(err)
 		return false, ""
+	default:
+		return true, original
 	}
-
-	return true, url
 }
 
 func (s DBStorage) Close() error {
 	return s.db.Close()
-}
-
-func initDatabase(db *sqlx.DB) error {
-
-	_, err := db.Exec(initQuery)
-	return err
 }

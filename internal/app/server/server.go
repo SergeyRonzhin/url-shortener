@@ -48,7 +48,7 @@ func New(options *config.Options, logger *logger.Logger) (*Server, context.Conte
 	m := middlewares.New(logger)
 
 	server := Server{
-		httpHandlers: handlers.New(options, logger, service.New(s)),
+		httpHandlers: handlers.New(options, logger, service.New(logger, options, s)),
 		options:      options,
 		logger:       logger,
 		middlewares:  &m,
@@ -64,7 +64,10 @@ func (s Server) Run(ctx context.Context) {
 	r.Use(s.middlewares.Logging, s.middlewares.Compression)
 
 	r.Get("/ping", s.httpHandlers.Ping)
-	r.Post("/api/shorten", s.httpHandlers.Shorten)
+	r.Route("/api/shorten", func(r chi.Router) {
+		r.Post("/", s.httpHandlers.Shorten)
+		r.Post("/batch", s.httpHandlers.ShortenBatch)
+	})
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{id}", s.httpHandlers.GET)
 		r.Post("/", s.httpHandlers.POST)
@@ -108,5 +111,5 @@ func getStorage(o *config.Options, logger *logger.Logger) (service.Repository, e
 		return storage.NewFileStorage(o)
 	}
 
-	return storage.NewMemoryStorage(), nil
+	return storage.NewMemStorage(), nil
 }

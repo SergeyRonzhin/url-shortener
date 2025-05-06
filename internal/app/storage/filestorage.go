@@ -7,23 +7,17 @@ import (
 	"sync"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
-	"github.com/google/uuid"
 )
 
-type URL struct {
-	UUID        string `json:"uuid"`
-	ShortURL    string `json:"short_url"`
-	OriginalURL string `json:"original_url"`
-}
-
 type FileStorage struct {
-	URLs    map[string]URL
+	urls    []URL
 	options *config.Options
 	mu      sync.Mutex
 	file    *os.File
 }
 
 func NewFileStorage(options *config.Options) (*FileStorage, error) {
+
 	file, err := os.OpenFile(options.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0666)
 
 	if err != nil {
@@ -31,7 +25,7 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 	}
 
 	scan := bufio.NewScanner(file)
-	urls := make(map[string]URL)
+	urls := make([]URL, 0)
 
 	for scan.Scan() {
 		url := URL{}
@@ -41,35 +35,22 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 			return nil, err
 		}
 
-		urls[url.ShortURL] = url
+		urls = append(urls, url)
 	}
 
 	return &FileStorage{
-		URLs:    urls,
+		urls:    urls,
 		options: options,
 		file:    file,
 	}, err
 }
 
-func (s *FileStorage) Get(key string) (string, bool) {
+func (s *FileStorage) Add(url URL) error {
+
 	s.mu.Lock()
-	url, exist := s.URLs[key]
-	s.mu.Unlock()
+	defer s.mu.Unlock()
 
-	return url.OriginalURL, exist
-}
-
-func (s *FileStorage) Add(key string, value string) error {
-	s.mu.Lock()
-
-	url := URL{
-		UUID:        uuid.New().String(),
-		ShortURL:    key,
-		OriginalURL: value,
-	}
-
-	s.URLs[url.ShortURL] = url
-
+	s.urls = append(s.urls, url)
 	data, err := json.Marshal(url)
 
 	if err != nil {
@@ -96,15 +77,63 @@ func (s *FileStorage) Add(key string, value string) error {
 		return err
 	}
 
-	s.mu.Unlock()
-
 	return err
 }
 
-func (s *FileStorage) ContainsValue(value string) (bool, string) {
-	for key, url := range s.URLs {
-		if url.OriginalURL == value {
-			return true, key
+func (s *FileStorage) Batch(urls []URL) error {
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.urls = append(s.urls, urls...)
+	writer := bufio.NewWriter(s.file)
+
+	for _, url := range urls {
+
+		data, err := json.Marshal(url)
+
+		if err != nil {
+			return err
+		}
+
+		_, err = writer.Write(data)
+
+		if err != nil {
+			return err
+		}
+
+		_, err = writer.WriteString("\n")
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return writer.Flush()
+}
+
+func (s *FileStorage) GetShortURL(original string) (bool, string) {
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, url := range s.urls {
+		if url.Original == original {
+			return true, url.Short
+		}
+	}
+
+	return false, ""
+}
+
+func (s *FileStorage) GetOriginalURL(short string) (bool, string) {
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, url := range s.urls {
+		if url.Short == short {
+			return true, url.Original
 		}
 	}
 
