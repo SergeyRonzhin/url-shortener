@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -10,7 +9,7 @@ import (
 
 func (h HTTPHandler) Ping(rw http.ResponseWriter, rq *http.Request) {
 
-	db, err := sqlx.ConnectContext(context.Background(), "postgres", h.options.DatabaseDsn)
+	db, err := sqlx.Connect("postgres", h.options.DatabaseDsn)
 
 	defer func() {
 		err = db.Close()
@@ -21,6 +20,12 @@ func (h HTTPHandler) Ping(rw http.ResponseWriter, rq *http.Request) {
 	}()
 
 	if err != nil {
+		h.logger.Error(err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err = db.DB.Ping(); err != nil {
 		h.logger.Error(err)
 		rw.WriteHeader(http.StatusInternalServerError)
 		return

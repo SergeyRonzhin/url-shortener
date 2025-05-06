@@ -38,6 +38,10 @@ func NewDBStorage(options *config.Options, logger *logger.Logger) (*DBStorage, e
 		return nil, err
 	}
 
+	if err = db.DB.Ping(); err != nil {
+		return nil, err
+	}
+
 	db.MustExec(initQuery)
 
 	return &DBStorage{
@@ -51,7 +55,7 @@ func (s *DBStorage) Add(url URL) error {
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
-	_, err := s.db.ExecContext(ctx, `INSERT INTO `+tableName+` (uuid, short_url, original_url) 
+	_, err := s.db.NamedExecContext(ctx, `INSERT INTO `+tableName+` (uuid, short_url, original_url) 
 		VALUES (:uuid, :short_url, :original_url)`, url)
 
 	return err
