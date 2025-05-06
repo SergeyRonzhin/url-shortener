@@ -37,7 +37,7 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	shortLink, err := h.shortener.GetShortLink(dataRq.URL)
+	link, err := h.shortener.GetShortLink(dataRq.URL)
 
 	if err != nil {
 		h.logger.Error(err)
@@ -45,11 +45,7 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	dataRs := ShortenRs{
-		Result: h.options.BaseURL + "/" + shortLink,
-	}
-
-	rs, err := json.Marshal(dataRs)
+	rs, err := json.Marshal(ShortenRs{link})
 
 	if err != nil {
 		h.logger.Error(err)
