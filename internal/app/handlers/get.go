@@ -13,13 +13,13 @@ func (h HTTPHandler) GET(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	url, exist := h.shortener.GetOriginalURL(id)
+	exist, link := h.shortener.GetOriginalLink(id)
 
 	if !exist {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	rw.Header().Add("Location", url)
+	rw.Header().Add("Location", link)
 	rw.WriteHeader(http.StatusTemporaryRedirect)
 }

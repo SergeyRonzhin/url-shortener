@@ -12,6 +12,7 @@ type Options struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	LogLevel        string `env:"LOG_LEVEL"`
 	LogEncoding     string `env:"LOG_ENCODING"`
+	DatabaseDsn     string `env:"DATABASE_DSN"`
 }
 
 func New() (*Options, error) {
@@ -25,9 +26,10 @@ func New() (*Options, error) {
 
 	serverAddress := flag.String("a", "localhost:8080", "Address for hosting service")
 	baseURL := flag.String("b", "http://localhost:8080", "Base address for short links")
-	pathToFile := flag.String("f", "C:\\Sergey\\temp_files\\shortener_storage.json", "Path to file storage")
+	pathToFile := flag.String("f", "", "Path to file storage")
 	logLevel := flag.String("log_level", "info", "Log level")
 	logEncoding := flag.String("log_encode", "json", "Log encoding")
+	databaseDsn := flag.String("d", "", "Connection string to database")
 
 	flag.Parse()
 
@@ -49,6 +51,10 @@ func New() (*Options, error) {
 
 	if o.LogEncoding == "" {
 		o.LogEncoding = *logEncoding
+	}
+
+	if o.DatabaseDsn == "" {
+		o.DatabaseDsn = *databaseDsn
 	}
 
 	return o, nil
