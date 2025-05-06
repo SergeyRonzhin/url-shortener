@@ -18,7 +18,7 @@ type FileStorage struct {
 
 func NewFileStorage(options *config.Options) (*FileStorage, error) {
 
-	file, err := os.OpenFile(options.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(options.FileStoragePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
 	if err != nil {
 		return nil, err
@@ -71,13 +71,7 @@ func (s *FileStorage) Add(url URL) error {
 		return err
 	}
 
-	err = writer.Flush()
-
-	if err != nil {
-		return err
-	}
-
-	return err
+	return writer.Flush()
 }
 
 func (s *FileStorage) Batch(urls []URL) error {
