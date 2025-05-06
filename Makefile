@@ -38,11 +38,14 @@ iter10:
 	./shortenertestbeta -test.v -source-path=. -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration10$
 
 # iter11:
-# 	./shortenertestbeta -test.v -source-path=. -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration11$
+# 	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration11$
 
 iter12:
-	./shortenertestbeta -test.v -source-path=. -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration12$
+	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration12$
+
+iter13:
+	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration13$
 
 localtests: build linter tests
 
-autotests: iter1 iter2 iter3 iter4 iter5 iter6 iter7 iter8 iter9 iter10 iter12
+autotests: iter1 iter2 iter3 iter4 iter5 iter6 iter7 iter8 iter9 iter10 iter12 iter13

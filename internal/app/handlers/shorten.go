@@ -37,7 +37,7 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	link, err := h.shortener.GetShortLink(dataRq.URL)
+	exists, link, err := h.shortener.GetShortLink(dataRq.URL)
 
 	if err != nil {
 		h.logger.Error(err)
@@ -54,6 +54,12 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 	}
 
 	rw.Header().Set("content-type", "application/json")
-	rw.WriteHeader(http.StatusCreated)
+
+	if exists {
+		rw.WriteHeader(http.StatusConflict)
+	} else {
+		rw.WriteHeader(http.StatusCreated)
+	}
+
 	rw.Write(rs)
 }

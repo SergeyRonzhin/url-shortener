@@ -30,12 +30,12 @@ func New(logger *logger.Logger, options *config.Options, storage Repository) URL
 	return URLShortener{logger, options, storage}
 }
 
-func (s URLShortener) GetShortLink(originalURL string) (string, error) {
+func (s URLShortener) GetShortLink(originalURL string) (bool, string, error) {
 
 	exists, shortURL := s.storage.GetShortURL(originalURL)
 
 	if exists {
-		return s.getShortWithBaseURL(shortURL), nil
+		return true, s.getShortWithBaseURL(shortURL), nil
 	}
 
 	shortURL = generateShortURL(8)
@@ -47,7 +47,7 @@ func (s URLShortener) GetShortLink(originalURL string) (string, error) {
 	}
 
 	err := s.storage.Add(url)
-	return s.getShortWithBaseURL(url.Short), err
+	return false, s.getShortWithBaseURL(url.Short), err
 }
 
 func (s URLShortener) GetShortLinks(originalURLs map[string]string) (map[string]string, error) {

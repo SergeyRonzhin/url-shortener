@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
@@ -78,7 +79,7 @@ func (s *DBStorage) GetShortURL(original string) (bool, string) {
 	err := row.Scan(&short)
 
 	switch {
-	case err == sql.ErrNoRows:
+	case errors.Is(err, sql.ErrNoRows):
 		return false, ""
 	case err != nil:
 		s.logger.Error(err)
@@ -99,7 +100,7 @@ func (s *DBStorage) GetOriginalURL(short string) (bool, string) {
 	err := row.Scan(&original)
 
 	switch {
-	case err == sql.ErrNoRows:
+	case errors.Is(err, sql.ErrNoRows):
 		return false, ""
 	case err != nil:
 		s.logger.Error(err)

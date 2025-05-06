@@ -31,7 +31,7 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	link, err := h.shortener.GetShortLink(original)
+	exists, link, err := h.shortener.GetShortLink(original)
 
 	if err != nil {
 		h.logger.Error(err)
@@ -39,7 +39,12 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 	}
 
 	rw.Header().Add("content-type", "text/plain")
-	rw.WriteHeader(http.StatusCreated)
+
+	if exists {
+		rw.WriteHeader(http.StatusConflict)
+	} else {
+		rw.WriteHeader(http.StatusCreated)
+	}
 
 	_, err = fmt.Fprint(rw, link)
 
