@@ -53,19 +53,18 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	_, err = rw.Write(rs)
-
-	if err != nil {
-		h.logger.Error(err)
-		rw.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
 	rw.Header().Set("content-type", "application/json")
 
 	if exists {
 		rw.WriteHeader(http.StatusConflict)
 	} else {
 		rw.WriteHeader(http.StatusCreated)
+	}
+
+	_, err = rw.Write(rs)
+
+	if err != nil {
+		h.logger.Error(err)
+		rw.WriteHeader(http.StatusBadRequest)
 	}
 }

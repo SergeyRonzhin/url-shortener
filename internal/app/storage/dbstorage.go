@@ -53,11 +53,11 @@ func (s *DBStorage) Batch(ctx context.Context, urls []URL) error {
 }
 
 func (s *DBStorage) GetShortURL(ctx context.Context, original string) (bool, string) {
-	return s.getUrl(ctx, "SELECT short_url FROM urls WHERE original_url = $1", original)
+	return s.getURL(ctx, "SELECT short_url FROM urls WHERE original_url = $1", original)
 }
 
 func (s *DBStorage) GetOriginalURL(ctx context.Context, short string) (bool, string) {
-	return s.getUrl(ctx, "SELECT original_url FROM urls WHERE short_url = $1", short)
+	return s.getURL(ctx, "SELECT original_url FROM urls WHERE short_url = $1", short)
 }
 
 func (s DBStorage) Close() error {
@@ -66,22 +66,16 @@ func (s DBStorage) Close() error {
 
 func (s *DBStorage) Ping(ctx context.Context) error {
 
-	db, err := sqlx.Connect("postgres", s.options.DatabaseDsn)
+	db, err := sqlx.ConnectContext(ctx, "postgres", s.options.DatabaseDsn)
 
 	defer func() {
 		err = db.Close()
 	}()
 
-	if err != nil {
-		return err
-	}
-
-	err = db.DB.PingContext(ctx)
-
 	return err
 }
 
-func (s *DBStorage) getUrl(ctx context.Context, query string, args ...any) (bool, string) {
+func (s *DBStorage) getURL(ctx context.Context, query string, args ...any) (bool, string) {
 	row := s.db.QueryRowContext(ctx, query, args...)
 	var short string
 

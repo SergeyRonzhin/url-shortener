@@ -36,8 +36,8 @@ func New(options *config.Options, logger *logger.Logger) (*Server, context.Conte
 	if _, ok := s.(*storage.DBStorage); ok {
 		m := migrator.New(options, logger)
 
-		if err := m.ApplyMigrations(); err != nil {
-			panic(err)
+		if err = m.ApplyMigrations(); err != nil {
+			return nil, nil, err
 		}
 	}
 

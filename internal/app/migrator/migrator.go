@@ -28,20 +28,27 @@ func (m Migrator) ApplyMigrations() error {
 
 	fm, err := migrate.New("file://"+m.options.MigrationsPath, m.options.DatabaseDsn)
 
+	defer func() {
+		sourceErr, databaseErr := fm.Close()
+
+		if sourceErr != nil || databaseErr != nil {
+			err = errors.Join(sourceErr, databaseErr)
+		}
+	}()
+
 	if err != nil {
 		return err
 	}
 
-	if err := fm.Up(); err != nil {
+	err = fm.Up()
 
-		if errors.Is(err, migrate.ErrNoChange) {
-			m.logger.Info("no migrations to apply")
-			return nil
-		}
+	if err == nil {
+		m.logger.Info("migrations applied successfully")
+	} else if errors.Is(err, migrate.ErrNoChange) {
 
-		return err
+		m.logger.Info("no migrations to apply")
+		return nil
 	}
 
-	m.logger.Info("migrations applied successfully")
-	return nil
+	return err
 }
