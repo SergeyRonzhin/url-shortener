@@ -29,10 +29,12 @@ func (m Migrator) ApplyMigrations() error {
 	fm, err := migrate.New("file://"+m.options.MigrationsPath, m.options.DatabaseDsn)
 
 	defer func() {
-		sourceErr, databaseErr := fm.Close()
+		if fm != nil {
+			sourceErr, databaseErr := fm.Close()
 
-		if sourceErr != nil || databaseErr != nil {
-			err = errors.Join(sourceErr, databaseErr)
+			if sourceErr != nil || databaseErr != nil {
+				err = errors.Join(sourceErr, databaseErr)
+			}
 		}
 	}()
 
