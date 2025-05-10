@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"sync"
 )
 
@@ -13,7 +14,7 @@ func NewMemStorage() *MemStorage {
 	return &MemStorage{urls: make([]URL, 0)}
 }
 
-func (s *MemStorage) Add(u URL) error {
+func (s *MemStorage) Add(ctx context.Context, u URL) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -22,7 +23,7 @@ func (s *MemStorage) Add(u URL) error {
 	return nil
 }
 
-func (s *MemStorage) Batch(urls []URL) error {
+func (s *MemStorage) Batch(ctx context.Context, urls []URL) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -31,7 +32,7 @@ func (s *MemStorage) Batch(urls []URL) error {
 	return nil
 }
 
-func (s *MemStorage) GetShortURL(original string) (bool, string) {
+func (s *MemStorage) GetShortURL(ctx context.Context, original string) (bool, string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -44,7 +45,7 @@ func (s *MemStorage) GetShortURL(original string) (bool, string) {
 	return false, ""
 }
 
-func (s *MemStorage) GetOriginalURL(short string) (bool, string) {
+func (s *MemStorage) GetOriginalURL(ctx context.Context, short string) (bool, string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -58,5 +59,9 @@ func (s *MemStorage) GetOriginalURL(short string) (bool, string) {
 }
 
 func (s *MemStorage) Close() error {
+	return nil
+}
+
+func (s *MemStorage) Ping(ctx context.Context) error {
 	return nil
 }

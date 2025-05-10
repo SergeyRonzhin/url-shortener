@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"math/rand"
 	"time"
 
@@ -11,11 +12,12 @@ import (
 )
 
 type Repository interface {
-	Add(url storage.URL) error
-	Batch(urls []storage.URL) error
-	GetShortURL(original string) (bool, string)
-	GetOriginalURL(short string) (bool, string)
+	Add(ctx context.Context, url storage.URL) error
+	Batch(ctx context.Context, urls []storage.URL) error
+	GetShortURL(ctx context.Context, original string) (bool, string)
+	GetOriginalURL(ctx context.Context, short string) (bool, string)
 	Close() error
+	Ping(ctx context.Context) error
 }
 
 type URLShortener struct {
@@ -30,9 +32,9 @@ func New(logger *logger.Logger, options *config.Options, storage Repository) URL
 	return URLShortener{logger, options, storage}
 }
 
-func (s URLShortener) GetShortLink(originalURL string) (bool, string, error) {
+func (s URLShortener) GetShortLink(ctx context.Context, originalURL string) (bool, string, error) {
 
-	exists, shortURL := s.storage.GetShortURL(originalURL)
+	exists, shortURL := s.storage.GetShortURL(ctx, originalURL)
 
 	if exists {
 		return true, s.getShortWithBaseURL(shortURL), nil
@@ -46,18 +48,18 @@ func (s URLShortener) GetShortLink(originalURL string) (bool, string, error) {
 		Short:    shortURL,
 	}
 
-	err := s.storage.Add(url)
+	err := s.storage.Add(ctx, url)
 	return false, s.getShortWithBaseURL(url.Short), err
 }
 
-func (s URLShortener) GetShortLinks(originalURLs map[string]string) (map[string]string, error) {
+func (s URLShortener) GetShortLinks(ctx context.Context, originalURLs map[string]string) (map[string]string, error) {
 
 	urls := make([]storage.URL, 0, len(originalURLs))
 	result := make(map[string]string, len(originalURLs))
 
 	for uuid, original := range originalURLs {
 
-		exists, shortURL := s.storage.GetShortURL(original)
+		exists, shortURL := s.storage.GetShortURL(ctx, original)
 
 		if exists {
 			result[uuid] = s.getShortWithBaseURL(shortURL)
@@ -77,14 +79,18 @@ func (s URLShortener) GetShortLinks(originalURLs map[string]string) (map[string]
 	var err error
 
 	if len(urls) != 0 {
-		err = s.storage.Batch(urls)
+		err = s.storage.Batch(ctx, urls)
 	}
 
 	return result, err
 }
 
-func (s URLShortener) GetOriginalLink(shortLink string) (bool, string) {
-	return s.storage.GetOriginalURL(shortLink)
+func (s URLShortener) GetOriginalLink(ctx context.Context, shortLink string) (bool, string) {
+	return s.storage.GetOriginalURL(ctx, shortLink)
+}
+
+func (s URLShortener) Ping(ctx context.Context) error {
+	return s.storage.Ping(ctx)
 }
 
 func generateShortURL(length int) string {

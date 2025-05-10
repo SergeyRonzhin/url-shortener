@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -196,7 +197,7 @@ func TestGET(t *testing.T) {
 		Original: "https://google.com",
 	}
 
-	store.Add(url)
+	store.Add(context.TODO(), url)
 
 	httpHandler := New(options, logger, service.New(logger, options, store))
 

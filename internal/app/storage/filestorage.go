@@ -2,6 +2,7 @@ package storage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"os"
 	"sync"
@@ -45,7 +46,7 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 	}, err
 }
 
-func (s *FileStorage) Add(url URL) error {
+func (s *FileStorage) Add(ctx context.Context, url URL) error {
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -74,7 +75,7 @@ func (s *FileStorage) Add(url URL) error {
 	return writer.Flush()
 }
 
-func (s *FileStorage) Batch(urls []URL) error {
+func (s *FileStorage) Batch(ctx context.Context, urls []URL) error {
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -106,7 +107,7 @@ func (s *FileStorage) Batch(urls []URL) error {
 	return writer.Flush()
 }
 
-func (s *FileStorage) GetShortURL(original string) (bool, string) {
+func (s *FileStorage) GetShortURL(ctx context.Context, original string) (bool, string) {
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -120,7 +121,7 @@ func (s *FileStorage) GetShortURL(original string) (bool, string) {
 	return false, ""
 }
 
-func (s *FileStorage) GetOriginalURL(short string) (bool, string) {
+func (s *FileStorage) GetOriginalURL(ctx context.Context, short string) (bool, string) {
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -136,4 +137,8 @@ func (s *FileStorage) GetOriginalURL(short string) (bool, string) {
 
 func (s *FileStorage) Close() error {
 	return s.file.Close()
+}
+
+func (s *FileStorage) Ping(ctx context.Context) error {
+	return nil
 }

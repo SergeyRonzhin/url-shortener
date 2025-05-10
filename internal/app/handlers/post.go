@@ -31,7 +31,7 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	exists, link, err := h.shortener.GetShortLink(original)
+	exists, link, err := h.shortener.GetShortLink(rq.Context(), original)
 
 	if err != nil {
 		h.logger.Error(err)

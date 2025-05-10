@@ -45,7 +45,7 @@ func (h HTTPHandler) ShortenBatch(rw http.ResponseWriter, rq *http.Request) {
 		urlsMap[u.UUID] = u.URL
 	}
 
-	shortLinks, err := h.shortener.GetShortLinks(urlsMap)
+	shortLinks, err := h.shortener.GetShortLinks(rq.Context(), urlsMap)
 
 	if err != nil {
 		h.logger.Error(err)
