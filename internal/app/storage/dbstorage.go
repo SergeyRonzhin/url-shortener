@@ -17,17 +17,6 @@ type DBStorage struct {
 	logger  *logger.Logger
 }
 
-var (
-	initQuery = `CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-	
-	CREATE TABLE IF NOT EXISTS urls (
-		uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		short_url VARCHAR(255) NOT NULL,
-		original_url VARCHAR(255) NOT NULL,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);`
-)
-
 func NewDBStorage(options *config.Options, logger *logger.Logger) (*DBStorage, error) {
 
 	db, err := sqlx.Connect("postgres", options.DatabaseDsn)
@@ -39,8 +28,6 @@ func NewDBStorage(options *config.Options, logger *logger.Logger) (*DBStorage, e
 	if err = db.DB.Ping(); err != nil {
 		return nil, err
 	}
-
-	db.MustExec(initQuery)
 
 	return &DBStorage{
 		db:      db,

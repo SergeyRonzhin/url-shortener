@@ -35,16 +35,16 @@ iter9:
 	./shortenertestbeta -test.v -source-path=. -binary-path=cmd/shortener/shortener -file-storage-path="storage.json" -test.run=^TestIteration9$
 
 iter10:
-	./shortenertestbeta -test.v -source-path=. -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration10$
+	./shortenertestbeta -test.v -source-path=. -binary-path=cmd/shortener/shortener -database-dsn='postgres://postgres:@localhost:5432/url_shortener?sslmode=disable&search_path=public' -test.run=^TestIteration10$
 
 iter11:
-	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration11$
+	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='postgres://postgres:@localhost:5432/url_shortener?sslmode=disable&search_path=public' -test.run=^TestIteration11$
 
 iter12:
-	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration12$
+	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='postgres://postgres:@localhost:5432/url_shortener?sslmode=disable&search_path=public' -test.run=^TestIteration12$
 
 iter13:
-	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='host=localhost port=5432 user=postgres dbname=url_shortener sslmode=disable' -test.run=^TestIteration13$
+	./shortenertestbeta -test.v -binary-path=cmd/shortener/shortener -database-dsn='postgres://postgres:@localhost:5432/url_shortener?sslmode=disable&search_path=public' -test.run=^TestIteration13$
 
 localtests: build linter tests
 

@@ -13,6 +13,7 @@ type Options struct {
 	LogLevel        string `env:"LOG_LEVEL"`
 	LogEncoding     string `env:"LOG_ENCODING"`
 	DatabaseDsn     string `env:"DATABASE_DSN"`
+	MigrationsPath  string `env:"MIGRATIONS_PATH"`
 }
 
 func New() (*Options, error) {
@@ -30,6 +31,7 @@ func New() (*Options, error) {
 	logLevel := flag.String("log_level", "info", "Log level")
 	logEncoding := flag.String("log_encode", "json", "Log encoding")
 	databaseDsn := flag.String("d", "", "Connection string to database")
+	migrationsPath := flag.String("m", "", "Path to migration files")
 
 	flag.Parse()
 
@@ -55,6 +57,10 @@ func New() (*Options, error) {
 
 	if o.DatabaseDsn == "" {
 		o.DatabaseDsn = *databaseDsn
+	}
+
+	if o.MigrationsPath == "" {
+		o.MigrationsPath = *migrationsPath
 	}
 
 	return o, nil

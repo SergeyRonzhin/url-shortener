@@ -11,6 +11,7 @@ import (
 	"github.com/SergeyRonzhin/url-shortener/internal/app/handlers"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/middlewares"
+	"github.com/SergeyRonzhin/url-shortener/internal/app/migrator"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/service"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
 	"github.com/go-chi/chi/v5"
@@ -30,6 +31,14 @@ func New(options *config.Options, logger *logger.Logger) (*Server, context.Conte
 
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if _, ok := s.(*storage.DBStorage); ok {
+		m := migrator.New(options, logger)
+
+		if err := m.ApplyMigrations(); err != nil {
+			panic(err)
+		}
 	}
 
 	term, ctx := graterm.NewWithSignals(context.Background(), syscall.SIGINT, syscall.SIGTERM)

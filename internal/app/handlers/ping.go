@@ -12,6 +12,6 @@ func (h HTTPHandler) Ping(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	h.logger.Info("Connection to database successful!")
+	h.logger.Info("connection to database successfully")
 	rw.WriteHeader(http.StatusOK)
 }
