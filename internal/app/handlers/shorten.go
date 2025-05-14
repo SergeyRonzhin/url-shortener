@@ -37,7 +37,7 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	shortLink, err := h.shortener.GetShortLink(dataRq.URL)
+	exists, link, err := h.shortener.GetShortLink(rq.Context(), dataRq.URL)
 
 	if err != nil {
 		h.logger.Error(err)
@@ -45,11 +45,7 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	dataRs := ShortenRs{
-		Result: h.options.BaseURL + "/" + shortLink,
-	}
-
-	rs, err := json.Marshal(dataRs)
+	rs, err := json.Marshal(ShortenRs{link})
 
 	if err != nil {
 		h.logger.Error(err)
@@ -58,6 +54,17 @@ func (h HTTPHandler) Shorten(rw http.ResponseWriter, rq *http.Request) {
 	}
 
 	rw.Header().Set("content-type", "application/json")
-	rw.WriteHeader(http.StatusCreated)
-	rw.Write(rs)
+
+	if exists {
+		rw.WriteHeader(http.StatusConflict)
+	} else {
+		rw.WriteHeader(http.StatusCreated)
+	}
+
+	_, err = rw.Write(rs)
+
+	if err != nil {
+		h.logger.Error(err)
+		rw.WriteHeader(http.StatusBadRequest)
+	}
 }

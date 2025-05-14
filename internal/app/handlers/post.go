@@ -24,14 +24,14 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	url := string(body)
+	original := string(body)
 
-	if url == "" {
+	if original == "" {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	shortLink, err := h.shortener.GetShortLink(url)
+	exists, link, err := h.shortener.GetShortLink(rq.Context(), original)
 
 	if err != nil {
 		h.logger.Error(err)
@@ -39,9 +39,14 @@ func (h HTTPHandler) POST(rw http.ResponseWriter, rq *http.Request) {
 	}
 
 	rw.Header().Add("content-type", "text/plain")
-	rw.WriteHeader(http.StatusCreated)
 
-	_, err = fmt.Fprint(rw, h.options.BaseURL+"/"+shortLink)
+	if exists {
+		rw.WriteHeader(http.StatusConflict)
+	} else {
+		rw.WriteHeader(http.StatusCreated)
+	}
+
+	_, err = fmt.Fprint(rw, link)
 
 	if err != nil {
 		h.logger.Error(err)

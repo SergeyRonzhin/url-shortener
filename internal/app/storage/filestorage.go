@@ -2,37 +2,31 @@ package storage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"os"
 	"sync"
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
-	"github.com/google/uuid"
 )
 
-type URL struct {
-	UUID        string `json:"uuid"`
-	ShortURL    string `json:"short_url"`
-	OriginalURL string `json:"original_url"`
-}
-
 type FileStorage struct {
-	URLs    map[string]URL
+	urls    []URL
 	options *config.Options
 	mu      sync.Mutex
+	file    *os.File
 }
 
 func NewFileStorage(options *config.Options) (*FileStorage, error) {
-	file, err := os.OpenFile(options.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0666)
+
+	file, err := os.OpenFile(options.FileStoragePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() { err = file.Close() }()
-
 	scan := bufio.NewScanner(file)
-	urls := make(map[string]URL)
+	urls := make([]URL, 0)
 
 	for scan.Scan() {
 		url := URL{}
@@ -42,46 +36,29 @@ func NewFileStorage(options *config.Options) (*FileStorage, error) {
 			return nil, err
 		}
 
-		urls[url.ShortURL] = url
+		urls = append(urls, url)
 	}
 
-	return &FileStorage{URLs: urls, options: options}, err
+	return &FileStorage{
+		urls:    urls,
+		options: options,
+		file:    file,
+	}, err
 }
 
-func (s *FileStorage) Get(key string) (string, bool) {
+func (s *FileStorage) Add(ctx context.Context, url URL) error {
+
 	s.mu.Lock()
-	url, exist := s.URLs[key]
-	s.mu.Unlock()
+	defer s.mu.Unlock()
 
-	return url.OriginalURL, exist
-}
-
-func (s *FileStorage) Add(key string, value string) error {
-	s.mu.Lock()
-
-	url := URL{
-		UUID:        uuid.New().String(),
-		ShortURL:    key,
-		OriginalURL: value,
-	}
-
-	s.URLs[url.ShortURL] = url
-
+	s.urls = append(s.urls, url)
 	data, err := json.Marshal(url)
 
 	if err != nil {
 		return err
 	}
 
-	file, err := os.OpenFile(s.options.FileStoragePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-
-	if err != nil {
-		return err
-	}
-
-	defer func() { err = file.Close() }()
-
-	writer := bufio.NewWriter(file)
+	writer := bufio.NewWriter(s.file)
 
 	_, err = writer.Write(data)
 
@@ -95,23 +72,73 @@ func (s *FileStorage) Add(key string, value string) error {
 		return err
 	}
 
-	err = writer.Flush()
-
-	if err != nil {
-		return err
-	}
-
-	s.mu.Unlock()
-
-	return err
+	return writer.Flush()
 }
 
-func (s *FileStorage) ContainsValue(value string) (bool, string) {
-	for key, url := range s.URLs {
-		if url.OriginalURL == value {
-			return true, key
+func (s *FileStorage) Batch(ctx context.Context, urls []URL) error {
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.urls = append(s.urls, urls...)
+	writer := bufio.NewWriter(s.file)
+
+	for _, url := range urls {
+
+		data, err := json.Marshal(url)
+
+		if err != nil {
+			return err
+		}
+
+		_, err = writer.Write(data)
+
+		if err != nil {
+			return err
+		}
+
+		_, err = writer.WriteString("\n")
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return writer.Flush()
+}
+
+func (s *FileStorage) GetShortURL(ctx context.Context, original string) (bool, string) {
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, url := range s.urls {
+		if url.Original == original {
+			return true, url.Short
 		}
 	}
 
 	return false, ""
+}
+
+func (s *FileStorage) GetOriginalURL(ctx context.Context, short string) (bool, string) {
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, url := range s.urls {
+		if url.Short == short {
+			return true, url.Original
+		}
+	}
+
+	return false, ""
+}
+
+func (s *FileStorage) Close() error {
+	return s.file.Close()
+}
+
+func (s *FileStorage) Ping(ctx context.Context) error {
+	return nil
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/service"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/storage"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -93,14 +95,14 @@ func TestPOST(t *testing.T) {
 		},
 	}
 
-	store := storage.NewMemoryStorage()
+	store := storage.NewMemStorage()
 	logger, err := logger.New(options)
 
 	if err != nil {
 		panic(err)
 	}
 
-	httpHandler := New(options, logger, service.New(&store))
+	httpHandler := New(options, logger, service.New(logger, options, store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -182,16 +184,22 @@ func TestGET(t *testing.T) {
 		},
 	}
 
-	store := storage.NewMemoryStorage()
+	store := storage.NewMemStorage()
 	logger, err := logger.New(options)
 
 	if err != nil {
 		panic(err)
 	}
 
-	store.Add("QWerTy", "https://google.com")
+	url := storage.URL{
+		UUID:     uuid.NewString(),
+		Short:    "QWerTy",
+		Original: "https://google.com",
+	}
 
-	httpHandler := New(options, logger, service.New(&store))
+	store.Add(context.TODO(), url)
+
+	httpHandler := New(options, logger, service.New(logger, options, store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -268,14 +276,14 @@ func TestShorten(t *testing.T) {
 		},
 	}
 
-	store := storage.NewMemoryStorage()
+	store := storage.NewMemStorage()
 	logger, err := logger.New(options)
 
 	if err != nil {
 		panic(err)
 	}
 
-	httpHandler := New(options, logger, service.New(&store))
+	httpHandler := New(options, logger, service.New(logger, options, store))
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

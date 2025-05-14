@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS urls (
+    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    short_url VARCHAR(255) NOT NULL,
+    original_url VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
