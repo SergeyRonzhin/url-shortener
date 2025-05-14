@@ -5,10 +5,11 @@ import (
 
 	"github.com/SergeyRonzhin/url-shortener/internal/app/config"
 	"github.com/SergeyRonzhin/url-shortener/internal/app/logger"
+	"github.com/SergeyRonzhin/url-shortener/internal/migrations"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
 type Migrator struct {
@@ -26,15 +27,23 @@ func (m Migrator) ApplyMigrations() error {
 		return errors.New("migrations path is required")
 	}
 
-	fm, err := migrate.New("file://"+m.options.MigrationsPath, m.options.DatabaseDsn)
+	sourceDriver, err := iofs.New(migrations.MigrationsFiles, m.options.MigrationsPath)
+
+	if err != nil {
+		return err
+	}
+
+	fm, err := migrate.NewWithSourceInstance("iofs", sourceDriver, m.options.DatabaseDsn)
 
 	defer func() {
-		if fm != nil {
-			sourceErr, databaseErr := fm.Close()
+		if fm == nil {
+			return
+		}
 
-			if sourceErr != nil || databaseErr != nil {
-				err = errors.Join(sourceErr, databaseErr)
-			}
+		sourceErr, databaseErr := fm.Close()
+
+		if sourceErr != nil || databaseErr != nil {
+			err = errors.Join(err, sourceErr, databaseErr)
 		}
 	}()
 
@@ -47,7 +56,6 @@ func (m Migrator) ApplyMigrations() error {
 	if err == nil {
 		m.logger.Info("migrations applied successfully")
 	} else if errors.Is(err, migrate.ErrNoChange) {
-
 		m.logger.Info("no migrations to apply")
 		return nil
 	}

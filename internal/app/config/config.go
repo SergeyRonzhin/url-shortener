@@ -31,7 +31,7 @@ func New() (*Options, error) {
 	logLevel := flag.String("log_level", "info", "Log level")
 	logEncoding := flag.String("log_encode", "json", "Log encoding")
 	databaseDsn := flag.String("d", "", "Connection string to database")
-	migrationsPath := flag.String("m", "../../internal/migrations", "Path to migration files")
+	migrationsPath := flag.String("m", ".", "Path to migration files")
 
 	flag.Parse()
 
